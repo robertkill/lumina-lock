@@ -1,3 +1,45 @@
+lumina-lock (0.4.14) unstable; urgency=medium
+
+  * Random dynamic wallpapers: instead of one fixed video, the control center
+    now takes a list of videos and every lock plays one of them. The draw
+    happens in the lock, at the moment of the lock and *before* the surfaces
+    come up, so the fade-in shows the video this lock actually got; all screens
+    share the one draw. The same video is never played twice in a row, entries
+    are re-checked for existence on every draw (a file moved between two locks
+    must not cost the lock its wallpaper), and an empty or fully stale list
+    falls back to the built-in wallpaper.
+    The list lives in `videoPaths` (wallpaperType gains `video-random`); the
+    control center's page gains a "random video list" row with an add/remove
+    dialog. `--video` / `--wallpaper` on the command line still win over the
+    pool and leave the config unread.
+
+  * The video poster can be framed: `posterAlignX` / `posterAlignY` are whole
+    percentages (0 = flush with the left/top edge, 50 = the centred crop this
+    used to be, 100 = flush with the right/bottom edge), so a cover whose
+    subject sits off-centre no longer has to be cropped through it. The fixed
+    video and the random pool share the one poster and its framing.
+
+  * Fixed the control-center plugin, which did not load at all: the module was
+    missing from the control center and, with it, its icon. The file dialog in
+    the new video-list dialog had been placed directly under D.DialogWindow,
+    whose default property is `content` — a list of Items — so a Window could
+    not be assigned to it ("Cannot assign object to list property \"content\"").
+    VideoListDialog therefore failed to instantiate, the type came back
+    unavailable, LuminalockMain could not be created, and the whole module went
+    away behind a single MainObjErr line in the log. The dialog now hangs off
+    the button that opens it, the way the other control-center plugins do.
+
+  * Redrew the module icon (a lock holding a wallpaper: hills and a sun) and
+    added the tests this feature needed: a QML probe that loads the plugin's
+    QML before an install and asserts the dialog type and the module icon
+    really resolve, a unit test over the draw itself (pool filtering, no
+    back-to-back repeat, single-entry pool, empty and fully stale pools), a
+    process-level end-to-end run of the lock binary, and a sandboxed DConfig
+    read/write round-trip that stands in for "the control center writes, the
+    lock reads".
+
+ -- Lumina <lumina@example.com>  Thu, 17 Sep 2026 20:28:26 +0800
+
 lumina-lock (0.4.13) unstable; urgency=medium
 
   * Added the session power menu — what dde-lock provides as
@@ -144,7 +186,6 @@ lumina-lock (0.4.13) unstable; urgency=medium
  -- Lumina <lumina@example.com>  Wed, 17 Sep 2026 15:10:00 +0800
 
 lumina-lock (0.4.12) unstable; urgency=medium
-
   * Multi-screen: the authentication UI now follows the user instead of being
     pinned to the primary screen. Every screen runs the same surface, and
     exactly one of them is "active" at a time — it compacts the clock and

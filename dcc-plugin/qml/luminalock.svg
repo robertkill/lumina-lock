@@ -1,6 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-  <rect x="40" y="58" width="48" height="46" rx="8" fill="none" stroke="#2ca7f8" stroke-width="6"/>
-  <path d="M50 58 v-14 a14 14 0 0 1 28 0 v14" fill="none" stroke="#2ca7f8" stroke-width="6" stroke-linecap="round"/>
-  <circle cx="64" cy="78" r="5" fill="#2ca7f8"/>
-  <rect x="61" y="81" width="6" height="12" rx="3" fill="#2ca7f8"/>
+  <!-- 控制中心「锁屏壁纸」模块图标。
+       锁与画面合成一个轮廓：锁体本身就是那块"画布"，里面是远山与太阳——小尺寸
+       下先读到的仍是一个可辨认的锁（锁梁偏窄偏高，避免像个提手），放大后才是
+       壁纸的意象。线宽 7/128 与 DTK 图标风格一致，颜色沿用主题蓝。 -->
+  <rect x="34" y="52" width="60" height="48" rx="12" fill="none" stroke="#2ca7f8" stroke-width="7"/>
+  <path d="M51 52 v-10 a13 13 0 0 1 26 0 v10" fill="none" stroke="#2ca7f8" stroke-width="7" stroke-linecap="round"/>
+  <path d="M43 92 L57 72 L66 84 L73 76 L85 92" fill="none" stroke="#2ca7f8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="79" cy="63" r="5" fill="#2ca7f8"/>
 </svg>

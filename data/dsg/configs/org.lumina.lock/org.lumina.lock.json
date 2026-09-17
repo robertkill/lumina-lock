@@ -8,7 +8,7 @@
             "flags": [],
             "name": "Wallpaper type",
             "name[zh_CN]": "壁纸类型",
-            "description": "锁屏壁纸类型：none（默认内置壁纸）/ static（静态图片）/ video（动态视频）。",
+            "description": "锁屏壁纸类型：none（默认内置壁纸）/ static（静态图片）/ video（动态视频）/ video-random（每次锁屏从视频列表中随机播放一个）。",
             "permissions": "readwrite",
             "visibility": "private"
         },
@@ -38,7 +38,37 @@
             "flags": [],
             "name": "Wallpaper video poster path",
             "name[zh_CN]": "动态壁纸封面路径",
-            "description": "锁屏动态壁纸的封面/首帧图片路径，用于避免视频首帧黑屏。",
+            "description": "锁屏动态壁纸的封面/首帧图片路径，用于避免视频首帧黑屏。固定视频与随机视频列表共用这一张封面。",
+            "permissions": "readwrite",
+            "visibility": "private"
+        },
+        "videoPaths": {
+            "value": [],
+            "serial": 0,
+            "flags": [],
+            "name": "Random wallpaper video pool",
+            "name[zh_CN]": "随机壁纸视频列表",
+            "description": "video-random 类型下每次锁屏随机播放的视频路径列表（本地文件）。列表为空或文件都不存在时回退到默认壁纸。",
+            "permissions": "readwrite",
+            "visibility": "private"
+        },
+        "posterAlignX": {
+            "value": 50,
+            "serial": 0,
+            "flags": [],
+            "name": "Video poster horizontal framing",
+            "name[zh_CN]": "封面横向取景位置",
+            "description": "封面图铺满裁剪时的横向取景位置，按百分比：0 = 贴左边缘，50 = 居中，100 = 贴右边缘。允许 0-100，默认 50。",
+            "permissions": "readwrite",
+            "visibility": "private"
+        },
+        "posterAlignY": {
+            "value": 50,
+            "serial": 0,
+            "flags": [],
+            "name": "Video poster vertical framing",
+            "name[zh_CN]": "封面纵向取景位置",
+            "description": "封面图铺满裁剪时的纵向取景位置，按百分比：0 = 贴上边缘，50 = 居中，100 = 贴下边缘。允许 0-100，默认 50。",
             "permissions": "readwrite",
             "visibility": "private"
         },

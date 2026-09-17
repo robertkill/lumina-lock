@@ -11,9 +11,11 @@
 - 任意按键 / 点击 / 上滑进入认证态，时间上移、背景 dim + 适度模糊、密码区 fade + slide 出现；**唤醒的那次按键会直接成为密码的第一个字符**，底部提示文字淡入上浮后缓慢呼吸
 - 密码框：圆点居中显示，每输入一个字符有一次轻微弹动；密码错误时横向抖动 + 弹性下沉的弹跳反馈，正确时描边闪 accent 色并向外脉冲一下
 - 静态图片壁纸（`Image`，aspect-crop 填充）与视频动态壁纸（`MediaPlayer` + `VideoOutput`，循环、静音）
+- **随机动态壁纸**：控制中心里可以添加多个动态视频，壁纸类型选「动态视频（随机）」后**每次上锁**从列表里随机抽一个来播，且不会连续两次抽到同一个。列表为空、或列表里的文件都不在了，回退内置壁纸；多屏共享同一次抽签结果（一屏一抽会让同一次锁屏的各块屏播不同视频）
+- **封面可取景**：动态壁纸的封面（静态图，用于遮住视频首帧前的那一瞬）可以调横向/纵向取景位置，避免封面主体被裁掉。固定视频与随机列表共用这一张封面；默认居中，与旧版行为完全一致
 - 壁纸整摞采用「**淡出上层遮挡物**」揭示：底色层在最上面盖住整摞，就绪后交叉淡出（500ms），poster 同理盖在视频之上。不用「淡入内容」是因为 `VideoOutput` 的 item opacity 不参与混合，而 `Rectangle`/`Image` 的会。进入时无黑屏闪烁；锁屏退出后释放视频资源
 - **时间 / 日期字体粗细可调**（细体 / 常规 / 中等 / 半粗 / 粗体），控制中心里改完即时生效
-- **控制中心集成**：随包附带 dde-control-center 插件（顶级模块「锁屏壁纸」），可设置静态图片 / 动态视频壁纸及封面、时间与日期字重，写入 `org.lumina.lock` DConfig；锁屏启动时读取、驻留时实时生效（CLI `--wallpaper`/`--video` 优先）
+- **控制中心集成**：随包附带 dde-control-center 插件（顶级模块「锁屏壁纸」），可设置静态图片 / 动态视频（单个）/ 动态视频（随机，含视频列表）壁纸及封面、封面取景位置、时间与日期字重，写入 `org.lumina.lock` DConfig；锁屏启动时读取、驻留时实时生效（CLI `--wallpaper`/`--video` 优先）
 - PAM 密码认证（C++ 层、异步、密码不落日志、生命周期尽量短）
 - 认证失败内联错误提示 + 密码框轻微 shake；成功则播放退出动画后解锁
 - **入场**：时钟/日期以固定字号单次淡入（480ms），不做尺寸动画；**再次上锁时同样只淡入一次**（`resetForLock()` 关闭 `animating` 让场景吸附回 Idle，入场淡入必须同样受它约束，否则会把上次遗留的满不透明度先淡出再淡入）——`unit` 取自窗口高度，窗口定尺寸前为 0，若此时动画尺寸会呈现"从无到有地长大"
@@ -65,15 +67,17 @@ src/
 ├── auth/PamAuthenticator   # PAM：worker 线程 + conversation + 结果回传 GUI 线程
 ├── session/LockSession     # 会话门面：用户身份、认证编排、锁定状态
 ├── session/LockService     # dde-lock lockFront D-Bus 适配器（QDBusAbstractAdaptor）
-├── wallpaper/WallpaperManager  # 壁纸“是什么”（类型 + 源），不含渲染
-├── wallpaper/WallpaperConfig   # 从 org.lumina.lock DConfig 读取壁纸设置并应用
+├── wallpaper/WallpaperManager  # 壁纸“是什么”（类型 + 源 + 封面取景），不含渲染
+├── wallpaper/WallpaperConfig   # 从 org.lumina.lock DConfig 读取壁纸设置并应用；随机视频池在这里抽签
 ├── appearance/AppearanceConfig # 从同一 DConfig 读取时间 / 日期字重
 ├── screen/ScreenManager    # 每屏一个全屏窗口、活跃认证屏的选择、X11 锁屏属性与键盘抓取、热插拔
 └── main.cpp                # 组装 + CLI + D-Bus 服务注册
 
 dcc-plugin/                 # dde-control-center 插件（控制中心「锁屏壁纸」模块）
-├── src/luminalock.{h,cpp}  # dccData：DConfig 读写 + 文件选择器
+├── src/luminalock.{h,cpp}  # dccData：DConfig 读写 + 文件选择器 + 随机视频列表增删
 └── qml/Luminalock*.qml     # 模块入口 + 设置页
+    qml/VideoListDialog.qml # 随机视频列表的增删弹窗
+    qml/luminalock.svg      # 模块图标（锁体里是远山与太阳）
 
 qml/
 ├── LockScreen.qml          # 统一 Scene（Idle / Authenticating 状态；每个屏各一个实例）
@@ -92,6 +96,7 @@ qml/
 - **C++** 负责系统能力、认证、状态与资源管理
 - **QML** 负责 UI、动画与视觉表现
 - 壁纸内容（`WallpaperManager` / `WallpaperHost`）与认证数据（`LockSession` / `PamAuthenticator`）完全隔离——后续第三方壁纸插件不会接触到密码或认证数据
+- 壁纸的**策略**（随机池里抽哪一个、封面怎么取景）只在 `WallpaperConfig` 里：`WallpaperManager` 拿到的永远是一张具体的壁纸，QML 不认识"列表""随机"这些概念，渲染路径因此不需要为随机壁纸做任何改动
 
 ### 认证流程
 
@@ -112,14 +117,18 @@ QML AuthView.submit(password)
 
 随包安装一个 dde-control-center 插件，控制中心会多出一个顶级模块「锁屏壁纸」。页面按控制中心自己的约定写：每行 `backgroundType: DccObject.Normal`、值放在行描述里、下拉用 `D.ComboBox { flat: true }`；行高、按钮尺寸与内边距**全部沿用控制中心默认值**，插件里不做任何写死，因此和其他设置页保持一致。可设置：
 
-- **壁纸类型**：默认壁纸 / 静态图片 / 动态视频
+- **壁纸类型**：默认壁纸 / 静态图片 / 动态视频 / 动态视频（随机）
 - **静态图片**：文件选择器选择一张图片
 - **动态视频**：选择一段视频；**视频封面**：可选一张封面图（避免首帧黑屏）
+- **随机视频列表**：「管理」打开弹窗，可添加多个视频、逐条删除；**添加一个视频就会把类型切到「动态视频（随机）」**（和「选择视频」会切到「动态视频」一致），删到空则退回默认壁纸
+- **封面横向取景** / **封面纵向取景**：动态壁纸封面铺满裁剪时的取景位置，0 = 贴左/上边缘、50 = 居中（默认）、100 = 贴右/下边缘，超范围会被夹到边界。固定视频与随机列表共用这一张封面
 - **时间字号** / **日期字号**：以 1080p 高度为基准的像素值（时间 80–240、日期 14–48），按屏幕分辨率等比缩放
 - **时间字体粗细** / **日期字体粗细**：细体 / 常规 / 中等 / 半粗 / 粗体
-- **恢复默认**：清空配置，回到内置壁纸与默认字重
+- **恢复默认**：清空配置（含随机视频列表与封面取景），回到内置壁纸与默认字重
 
-插件写入 `org.lumina.lock` DConfig（键 `wallpaperType` / `wallpaperPath` / `videoPath` / `posterPath` / `clockWeight` / `dateWeight` / `clockFontSize` / `dateFontSize`，schema 随包装在 `/usr/share/dsg/configs/org.lumina.lock/`）。锁屏进程读取同一份配置：启动时应用，驻留期间实时生效（DConfig 变更通知），因此**在控制中心改完即可直接上锁验证**。字重取值为 `thin` / `extralight` / `light` / `normal` / `medium` / `demibold` / `bold`，无法识别的值回退到默认（时间 `light`、日期 `medium`）；字号超出范围会被夹到边界（时间 80–240、日期 14–48）。因此手改配置不会导致锁屏异常。
+插件写入 `org.lumina.lock` DConfig（键 `wallpaperType` / `wallpaperPath` / `videoPath` / `posterPath` / `videoPaths` / `posterAlignX` / `posterAlignY` / `clockWeight` / `dateWeight` / `clockFontSize` / `dateFontSize`，schema 随包装在 `/usr/share/dsg/configs/org.lumina.lock/`）。锁屏进程读取同一份配置：启动时应用，驻留期间实时生效（DConfig 变更通知），因此**在控制中心改完即可直接上锁验证**。字重取值为 `thin` / `extralight` / `light` / `normal` / `medium` / `demibold` / `bold`，无法识别的值回退到默认（时间 `light`、日期 `medium`）；字号超出范围会被夹到边界（时间 80–240、日期 14–48），封面取景同理（0–100）。因此手改配置不会导致锁屏异常。
+
+`video-random` 的抽签发生在**锁屏进程内**、每次上锁的那一刻（`WallpaperConfig::pickForNewLock()`，挂在上锁信号上、先抽后显窗），抽签结果不进配置：控制中心只维护列表，锁屏只负责每次从列表里取一个不同的。列表项在每次抽签时重新校验是否存在，抽中的视频每次都会以一行 `Wallpaper: random draw <path>` 写进服务日志，便于核查。
 
 命令行参数 `--wallpaper` / `--video` 优先级高于 DConfig；不带这些参数时才读取控制中心的设置。文件选择用**系统文件对话框**（`FileDialog` 不加 `DontUseNativeDialog`，与其余控制中心插件一致，由文件管理器提供界面），系统上没有该服务时 Qt 会自动回退到自带实现。也可用 CLI 直接读写该配置：
 
@@ -131,6 +140,29 @@ dde-dconfig set -a org.lumina.lock -r org.lumina.lock -k clockWeight -v bold
 dde-dconfig set -a org.lumina.lock -r org.lumina.lock -k dateWeight -v demibold
 dde-dconfig set -a org.lumina.lock -r org.lumina.lock -k clockFontSize -v 180
 dde-dconfig set -a org.lumina.lock -r org.lumina.lock -k dateFontSize -v 32
+
+# 随机动态壁纸：列表 + 类型
+dde-dconfig set -a org.lumina.lock -r org.lumina.lock -k videoPaths \
+    -v '["/path/a.mp4","/path/b.mp4","/path/c.mp4"]'
+dde-dconfig set -a org.lumina.lock -r org.lumina.lock -k wallpaperType -v video-random
+
+# 封面取景（0 = 贴左/上边缘，50 = 居中，100 = 贴右/下边缘）
+dde-dconfig set -a org.lumina.lock -r org.lumina.lock -k posterAlignX -v 0
+dde-dconfig set -a org.lumina.lock -r org.lumina.lock -k posterAlignY -v 100
+```
+
+看这次上锁抽中了哪一个：
+
+```bash
+journalctl --user -u dde-lock.service -n 50 --no-pager | grep "random draw"
+```
+
+注意：那行日志是 `qInfo`，而 dtk6 默认把 info/debug 级别丢掉（只有 warning 及以上会进日志），所以要么加上日志规则，要么就看画面本身。临时打开：
+
+```bash
+# 前台跑一次就能看到抽签行
+QT_QPA_PLATFORM=offscreen QT_LOGGING_RULES="default.info=true" ./build/lumina-lock --test-exit-ms 2000
+# 常驻服务则写进 unit 的环境（systemctl --user edit dde-lock.service）
 ```
 
 开发期调试插件（未安装到系统时）：
@@ -164,8 +196,21 @@ dde-lock 并不是独立包：可执行文件、D-Bus service 文件、PAM 配�
 ```bash
 # 需安装构建依赖：qt6-base-dev qt6-declarative-dev qt6-multimedia-dev libpam0g-dev libxcb1-dev \
 #   libdtk6core-dev dde-control-center-dev debhelper cmake
-dpkg-buildpackage -b -us -uc     # 产物在上级目录 lumina-lock_0.4.12_amd64.deb
+dpkg-buildpackage -b -us -uc     # 产物在上级目录 lumina-lock_0.4.14_amd64.deb```
+
+**没有 `dde-control-center-dev` 时不要为了编译去装它**：它的 `Depends` 锁死 `dde-control-center (= 同版本)`，装它等于顺带把控制中心换成另一个版本。只下载解包、用 `CMAKE_PREFIX_PATH` 指过去，并让 dpkg 跳过构建依赖检查：
+
+```bash
+apt-get -o Acquire::http::Proxy=false download dde-control-center-dev   # 内网源经代理会 502，直连即可
+dpkg-deb -x dde-control-center-dev_*.deb /tmp/dcc-dev
+# 包内 Targets-none.cmake 的 IMPORTED_LOCATION 版本号是写死的，软链到系统已装的那个
+ln -sf /usr/lib/x86_64-linux-gnu/libdde-control-center.so.6.1.108.1 \
+       /tmp/dcc-dev/usr/lib/x86_64-linux-gnu/libdde-control-center.so.6.1.108.2
+export CMAKE_PREFIX_PATH=/tmp/dcc-dev/usr
+dpkg-buildpackage -b -us -uc -j100 -d
 ```
+
+**新增插件 QML / 图标时必须重建构建目录**：`dcc_install_plugin` 在 configure 阶段用 `file(GLOB_RECURSE)` 收集 `qml/` 下的 `*.qml`、`*.js` 与 `*.svg`/`*.png`/`*.dci`，新文件不删 `obj-x86_64-linux-gnu` 重新 configure 就进不了插件；QML 文件名必须首字母大写（宏会 FATAL_ERROR），`main.qml` 已废弃（需 `XxxMain.qml`）。
 
 ### 安装 / 卸载 / 回退
 
@@ -287,6 +332,37 @@ dbus-send --session --dest=org.deepin.dde.ShutdownFront1 \
 `qml` 侧只通过 `Screens` 单例（`Screens.authScreenName` / `activateAuthForScreen()` / `clearAuth()` / `takePendingText()`）与这套拓扑打交道，surface 本身不含任何屏幕数/主副屏逻辑。
 
 ## 冒烟测试
+
+### 控制中心插件 QML 探针（装包之前先跑）
+
+插件 QML 里的结构错误不会只报一行：`DccObject` 主对象建不出来时，控制中心里**整个模块连图标一起消失**，日志里只有一句 `MainObjErr`。所以改完插件 QML，装包前先用探针把插件的 QML 模块加载一遍（拿构建产物或包内目录都行）：
+
+```bash
+bash tests/plugin-qml-probe/run.sh obj-x86_64-linux-gnu/lib/plugins_v1.1
+```
+
+**已知坑（踩过一次）**：`D.DialogWindow` 的默认属性是 `content`（`list<Item>`），`FileDialog` 或任何 `Window` 都不能放成它的直接子级——会报 `Cannot assign object to list property "content"`，文件实例化失败后连带整个模块消失。文件选择框要挂在里面某个 Item（比如触发它的按钮）下面。
+
+### 随机动态壁纸：抽签规则单测 + 进程级 e2e
+
+两个脚本都在临时目录里跑（schema 和值存储都在沙箱），不装东西、不碰用户真实配置：
+
+```bash
+# 直接编译 WallpaperConfig + WallpaperManager，抽多次签，验证池过滤 / 不连续重复 /
+# 单条池 / 空池与全失效回退内置壁纸
+bash tests/draw-rule/run.sh
+
+# 真跑锁屏二进制，验证从配置读池、抽签、过滤与回退
+bash tests/random-draw-e2e/run.sh
+```
+
+写沙箱配置用的是 `tests/dconfig-roundtrip/run.sh` 里那个小探针（`write-args` / `align` 模式），它同时也验证了「控制中心写、锁屏读」这条跨进程存储链路。
+
+**做这类 DConfig 测试的三个坑**：
+
+1. 必须 `DSG_DCONFIG_BACKEND_TYPE=FileBackend`，否则会去问真机上跑着的 `dde-dconfig-daemon`，读到的是用户真实配置。
+2. meta 查找路径是字符串拼接 `<localPrefix>/<DSG_DATA_DIRS 项>/configs/<appid>/<name>.json`；值存储在 `$HOME/.config/dsg/configs/` 下。
+3. 值是**退出时才落盘**的，所以「写」和「读」必须分成两个进程；手工构造缓存 JSON 里列表键读不出来，要用库写。
 
 ```bash
 # 离屏渲染，2 秒后自动退出（验证启动与 QML 加载无致命错误）
