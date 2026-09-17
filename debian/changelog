@@ -1,4 +1,149 @@
-lumina-lock (0.4.12-1) unstable; urgency=medium
+lumina-lock (0.4.13) unstable; urgency=medium
+
+  * Added the session power menu — what dde-lock provides as
+    org.deepin.dde.ShutdownFront1. The dock's power button, the launcher's and
+    any session-issued request reach it, and its .service file activates this
+    same binary, so the process that owns the lock owns this too.
+    The method and signal names are dde-lock's, so nothing that calls it can
+    tell the difference; only the surface is new, and it is not a copy of the
+    original's grid of tiles: a vertical stack of rows over a two-tone gradient
+    that drifts while the menu is open, the selection carried by a marker that
+    changes height and a chevron that eases in, the rows arriving one after
+    another, and destructive rows that fill for a beat before acting — moving
+    away or pressing Esc takes the arm back.
+  * Availability is asked for rather than assumed: CanShutdown, CanReboot,
+    CanLogout, CanSuspend and CanHibernate decide which rows are live, and the
+    two update rows (UpdateAndShutdown / UpdateAndReboot, which hand the request
+    to lastore's PrepareFullScreenUpgrade so the update daemon runs the upgrade
+    and brings the machine down itself) are dimmed with a reason when there is
+    no update daemon to hand them to.
+  * Fixed a keyboard bug that this work exposed. ScreenManager reroutes a key
+    press to whichever screen the pointer is on, and treated "no screen claimed
+    yet" as another screen, so it consumed the key. With the power menu up, every
+    key aimed at it was swallowed whenever the pointer sat anywhere but the auth
+    screen — the normal case on a multi-screen desk. The menu now takes the
+    keyboard for as long as it is up.
+  * LUMINA_POWER_DRY_RUN=1 makes the menu log the action instead of performing
+    it. It can only ever prevent an action, so it is harmless to ship.
+  * Removed the jagged edges. Qt Quick draws rounded corners and scaled images
+    without smoothing unless asked, and the panels that were already smooth
+    (GlassPanel, and so the password pill) are the ones that had been asked:
+    the avatar's circle and its mask, the scaled account picture, and the menu's
+    rows, arm fill and marker were not. All of them now set antialiasing or
+    smooth as appropriate.
+  * Show the account's own picture instead of always drawing the initial. It
+    comes from the same place dde-lock takes it: IconFile on the accounts service
+    (system bus, /org/deepin/dde/Accounts1/User<uid>, interface
+    org.deepin.dde.Accounts1.User), and it is used only when the file exists and
+    is not empty — otherwise the initial stands, exactly as the reference does.
+    Fetched asynchronously, because this is the lock's startup path.
+    Two mistakes on the way there, both caught by running it rather than reading
+    it: asking asyncCall for "org.freedesktop.DBus.Properties.Get" as a method on
+    the *user* interface builds an invalid member name and libdbus aborts the
+    process (the lock would have crashed on startup); and Properties.Get answers
+    with a variant that Qt may already have unwrapped, so unwrapping
+    unconditionally turned the path into nothing. The same unwrap bug was in the
+    lastore CheckUpdateMode read, which would have handed the update daemon mode
+    0.
+  * Made the password character bigger (16 * unit -> 22 * unit) and put the
+    border weight back to 1 * unit, which is where it started — an earlier
+    "1.4 * unit" change never applied (the script that carried it aborted on its
+    first edit), so the borders had stayed at 2 * unit throughout.
+  * Removed the jagged edges where it is possible without new assets. Qt Quick
+    leaves rounded corners and scaled images unsmoothed unless asked, and the
+    panels that were already smooth (GlassPanel, and with it the password pill)
+    are the ones that had been asked. The avatar's circle and mask, the scaled
+    account picture, and the menu's rows, arm fill and marker now ask too.
+    One edge remains stepped: the outside of a *picture* avatar, because Qt does
+    not antialias a rounded Rectangle when it is rendered into a layer and a
+    layer is what the mask has to be. Doing better needs either a mask image with
+    the soft edge baked in, or a precompiled .qsb fragment shader (Qt 6 rejects
+    inline GLSL — fragmentShader is a URL to a .qsb, and this project ships none).
+  * Thickened the edges that are aimed at: the menu rows and the password pill
+    now use a 2 * unit border instead of a hairline. Both scale with the screen
+    like everything else, and the shutdown row's colour needs the weight to read
+    as an edge rather than a tint.
+  * Gave the menu an exit. It faded in and then cut: the scene gated its own
+    visibility on "is it up", so on the frame the exit began the item vanished,
+    and the window was hidden at the same instant. The scene now stays visible
+    while it is leaving, and the window is hidden only once the exit has played —
+    the scene reports back, with a 1.5s fallback because a window left up would
+    hold the keyboard with nothing on screen. Measured across the exit, the
+    screen goes 44 -> 41 -> 37 -> 29 -> 20 -> 13 -> 0: a decay, not a step.
+  * Clicking past the rows dismisses the menu and returns to the desktop. The
+    rows take their own clicks, so only the space around them is affected.
+  * The shutdown row carries the danger colour on its border, selected or not:
+    it is the one action that cannot be taken back.
+  * Declared both surfaces' window flags in QML instead of setting them from C++
+    after the window already existed. Setting a window flag makes Qt destroy and
+    recreate the native window, so whether the window manager had already decided
+    to manage it depended on how that recreation lined up with the mapping — the
+    open animation appeared only some of the time. Declared up front there is
+    nothing to race: xwininfo reports Override Redirect State: yes for the menu
+    on its first showing and on every reopening, and for the lock window, at the
+    screen's full size. showAll() now logs whether the flag is in place at the
+    moment the window is mapped (bypassWM=true), which is the property that used
+    to be timing-dependent.
+  * Fixed the two update rows doing nothing. They addressed lastore under its
+    classic name, com.deepin.lastore, which does not exist in the 6.x generation:
+    the availability probe therefore answered "no update daemon" and both rows
+    stayed dimmed, so clicking them could not do anything at all. They now use
+    org.deepin.dde.Lastore1 / /org/deepin/dde/Lastore1 / ...Lastore1.Manager, and
+    the probe reports updatesAvailable=true against the machine this was reported
+    from. The show log carries that flag, so it can be confirmed at a glance.
+  * Made the confirmation countdown restart rather than resume. Cancelling with
+    Esc and arming the same row again continued from wherever the cancelled fill
+    had stopped, because the fill's width was animated and left part-way: the
+    second press could act almost immediately. A fresh arm now resets the
+    progress to zero before counting. Measured: not fired 0.9s after re-arming,
+    fired 1.4s after it.
+  * Fixed the empty window left over the desktop after the first unlock — the
+    lock's own long-standing bug, not something the menu introduced, and the
+    reason the menu used to draw nothing when it borrowed those surfaces.
+    Both the lock's window and the menu's declared `visibility: Window.FullScreen`
+    in QML, which states what the window wants to be and fights the C++ that
+    hides it: after an unlock the lock's window stayed mapped over the desktop
+    (visible in the taskbar, clearable only with Alt+F4) and clicks never reached
+    the desktop. Visibility is now owned by ScreenManager alone. Proven by the
+    new logging, which reads the state *after* the hide: `hideAll after
+    visible=false visibility=0`.
+  * The menu's window is override-redirect on X11 — the same treatment the lock's
+    own windows get — so the window manager neither animates it open nor lists
+    it, and it is transparent, so the menu fades in out of the desktop rather
+    than opening as a window.
+  * The menu now draws in a window of its own instead of as a layer on the lock's
+    surfaces. The lock's windows are hidden and re-shown around every lock and
+    unlock, and this package's own logging showed the failure mode that follows
+    from borrowing them: the menu reached a fully settled scene (shown, opacity
+    1.0, correct size, eight rows) and nothing appeared, because the window it
+    was drawing into had been left in a state the window manager would not
+    present — after an unlock a surface stayed mapped over the desktop (visible
+    in the taskbar, cleared only with Alt+F4). A window that only ever shows the
+    menu has nothing else to go wrong, and the lock's window lifetime is no
+    longer on the path at all.
+    The window is sized from its screen the way the lock's windows are, because
+    a window that is merely asked to go fullscreen keeps the geometry it was
+    created with until the window manager answers — the first attempt drew the
+    menu into a 160x160 corner.
+  * Fixed two problems the first hands-on test of the menu turned up.
+    - It blocked the GUI thread — and held the keyboard grab — while asking the
+      session manager which actions were available. Those Can* calls are
+      synchronous and ran inside a D-Bus method handler, so a session manager
+      that was slow to answer, or that was itself waiting on our reply,
+      deadlocked: the page never appeared and the session had no keyboard, which
+      is indistinguishable from the lock having taken the machine hostage.
+      Against a session manager that answers in 3s, Show() took 15.0s and is now
+      measured at 0.01s. Availability is cached and refreshed asynchronously, and
+      lastore's CheckUpdateMode is read asynchronously as well.
+    - Shown over an unlocked session it flashed the lock's own clock before the
+      menu: bringing the borrowed surfaces up starts the lock's entry reveal.
+      Over an unlocked session the menu now covers the screen on its first frame
+      and fades nothing; the rows keep their stagger, which happens over an
+      already-opaque cover.
+
+ -- Lumina <lumina@example.com>  Wed, 17 Sep 2026 15:10:00 +0800
+
+lumina-lock (0.4.12) unstable; urgency=medium
 
   * Multi-screen: the authentication UI now follows the user instead of being
     pinned to the primary screen. Every screen runs the same surface, and

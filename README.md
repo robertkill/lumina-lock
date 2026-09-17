@@ -163,15 +163,15 @@ dde-lock 并不是独立包：可执行文件、D-Bus service 文件、PAM 配�
 
 ```bash
 # 需安装构建依赖：qt6-base-dev qt6-declarative-dev qt6-multimedia-dev libpam0g-dev libxcb1-dev \
-#   libdtkcore-dev dde-control-center-dev debhelper cmake
-dpkg-buildpackage -b -us -uc     # 产物在上级目录 lumina-lock_0.4.11-1_amd64.deb
+#   libdtk6core-dev dde-control-center-dev debhelper cmake
+dpkg-buildpackage -b -us -uc     # 产物在上级目录 lumina-lock_0.4.12_amd64.deb
 ```
 
 ### 安装 / 卸载 / 回退
 
 ```bash
 # 安装（替换 dde-lock）
-sudo dpkg -i lumina-lock_0.4.11-1_amd64.deb
+sudo dpkg -i lumina-lock_0.4.12_amd64.deb
 systemctl --user daemon-reload
 systemctl --user restart dde-lock.service   # 让新锁屏接管；或直接重新登录
 
@@ -220,6 +220,43 @@ dbus-send --session --dest=org.lumina.Lock --type=method_call \
 ```
 
 D-Bus 命名（`org.deepin.dde.*1` snipe 世代 vs 旧版 `com.deepin.dde.*`）在配置期由 `-DDSS_SNIPE=ON/OFF` 选择，默认 ON，与 Deepin 23+ / UOS 25 部署一致。DEB 固定以 `-DDSS_SNIPE=ON` 构建。
+
+## 电源菜单（关机 / 重启 / 更新并关机）
+
+dde-lock 提供的 `org.deepin.dde.ShutdownFront1` 也在这里：dock 的电源按钮、启动器的电源项、
+以及会话发起的请求都会打到它，而它的 `.service` 文件激活的就是**同一个二进制**
+（`/usr/bin/dde-lock --daemon`），所以持有锁屏的进程同时持有这个接口。
+
+外观与 dde-lock 完全不同（竖向单列，不是原来的宫格）：底下一层缓慢漂移的双色渐变；每行是
+「中文主标 + 英文副标」；选中由一根会变高的标记条与滑入的箭头表达；行会依次错开入场；
+关机 / 重启 / 注销这类破坏性操作需要**两段确认**——第一次按下让该行填充约 1.4 秒，期间移动
+或按 Esc 都能收回。
+
+方法与信号名与 dde-lock 一致，调用方无感：
+
+```bash
+# 打开菜单
+dbus-send --session --print-reply --dest=org.deepin.dde.ShutdownFront1 \
+    /org/deepin/dde/ShutdownFront1 org.deepin.dde.ShutdownFront1.Show
+
+# 关机（先打开菜单并把「关机」行置为确认中，留一个可取消的节拍）
+dbus-send --session --dest=org.deepin.dde.ShutdownFront1 \
+    /org/deepin/dde/ShutdownFront1 org.deepin.dde.ShutdownFront1.Shutdown
+```
+
+方法：`Show` / `Shutdown` / `Restart` / `Logout` / `Suspend` / `Hibernate` / `SwitchUser` /
+`Lock` / `UpdateAndShutdown` / `UpdateAndReboot`；属性 `Visible`。
+
+可用性不是写死的：`CanShutdown` / `CanReboot` / `CanLogout` / `CanSuspend` / `CanHibernate`
+决定哪些行可用；两个「更新并…」行交给系统总线上 `com.deepin.lastore` 的
+`PrepareFullScreenUpgrade`（更新由它执行，跑完它自己关机/重启），本机没有更新服务时这两行
+变暗并给出原因。
+
+菜单弹出期间它**接管键盘**：`ScreenManager` 本来会把按键改投到指针所在的那块屏，这在多屏下
+会把发给菜单的按键吞掉，所以菜单顶掉这个行为，关闭时恢复。
+
+开发/测试时可用 `LUMINA_POWER_DRY_RUN=1`：只打印将要执行的动作，不真的执行。它只会**阻止**
+动作、不会触发动作，所以留着无害。
 
 ## 安全边界（重要）
 
