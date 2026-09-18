@@ -13,10 +13,8 @@ import org.deepin.dtk 1.0 as D
 D.DialogWindow {
     id: dialog
     width: 460
-    height: 440
     minimumWidth: width
     maximumWidth: width
-    minimumHeight: height
     icon: "preferences-system"
     modality: Qt.WindowModal
     visible: true
@@ -24,8 +22,12 @@ D.DialogWindow {
 
     property string errorMessage: ""
 
+    // 注意：DialogWindow 的内容区高度 = childrenRect.height（由内容自己撑起来），
+    // 所以这里既不能用 anchors.fill: parent，也不能给子项用 Layout.fillHeight ——
+    // 那样算出来的内容高度是 0，列表会被压成 0 高，表现就是「加进去了却看不见」。
+    // 正确写法：内容纵向尺寸都给死（列表用 Layout.preferredHeight）。
     ColumnLayout {
-        anchors.fill: parent
+        width: parent.width
         spacing: 10
 
         Label {
@@ -37,7 +39,8 @@ D.DialogWindow {
 
         Item {
             Layout.fillWidth: true
-            Layout.fillHeight: true
+            // 固定高度：内容区高度靠 childrenRect 算，fillHeight 在这里算不出值。
+            Layout.preferredHeight: 280
 
             ListView {
                 id: videoList

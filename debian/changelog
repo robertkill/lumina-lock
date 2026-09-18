@@ -1,3 +1,27 @@
+lumina-lock (0.4.18) unstable; urgency=medium
+
+  * Fixed the lock not coming up at all. The clock position set
+    anchors.verticalCenterOffset twice on the same item, which is a hard QML
+    error: LockScreen.qml failed to load, ScreenManager had no surface to show,
+    and the screen stayed unlocked while the process kept running — the one
+    failure mode worse than a cosmetic bug. The offset is set once now: the
+    compact-state lift plus the position.
+
+  * Fixed the video-list dialog drawing no rows after an add. Its content used
+    anchors.fill: parent and Layout.fillHeight, but DialogWindow sizes its
+    content from childrenRect.height, so the content height resolved to 0 and the
+    list was laid out with nothing to fill — the videos were stored (the daemon
+    had all four) and the dialog showed none of them. The content now has a
+    definite height and the list a preferred one.
+
+  * Neither was visible to the tests, which is what they are for now:
+    tests/lock-surface-load locks the screen over D-Bus (surfaces are only built
+    on a lock, which the plain smoke run never did) and fails on any QML load
+    error; tests/videolist-dialog loads the real dialog against a stub dccData
+    and asserts the list has rows and a size.
+
+ -- Lumina <lumina@example.com>  Fri, 18 Sep 2026 10:03:29 +0800
+
 lumina-lock (0.4.16) unstable; urgency=medium
 
   * Moved the clock and the date. `clockPositionX` / `clockPositionY` place the
