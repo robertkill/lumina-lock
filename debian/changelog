@@ -1,3 +1,14 @@
+lumina-lock (0.4.24) unstable; urgency=medium
+
+  * Redrew the module icon in the solid style that was picked: a blue gradient
+    tile with the lock cut out of it and the hills and sun showing through inside
+    the lock. It fills its canvas rather than floating in the middle of it, which
+    is what made the previous one look small in the 32px the sidebar gives it.
+    Both layers of the shipped DCI come from the same SVG, so the sidebar size and
+    a large one stay in step.
+
+ -- Lumina <lumina@example.com>  Fri, 18 Sep 2026 13:37:36 +0800
+
 lumina-lock (0.4.23) unstable; urgency=medium
 
   * The control-center icon finally shows up. It had been declared as a file name
