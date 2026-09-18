@@ -1,3 +1,19 @@
+lumina-lock (0.4.16) unstable; urgency=medium
+
+  * Moved the clock and the date. `clockPositionX` / `clockPositionY` place the
+    block as whole percentages (0 = flush with the left/top edge, 50 = the
+    centred position it always had, 100 = flush with the right/bottom edge) and
+    the control center gained the two rows. One position for the pair: they are
+    one column, and moving the time away from its date is not a setting anyone
+    asked for. The offset is computed from the room the block actually has on
+    screen, so no type size and no animation can push it off an edge.
+
+  * Dropped the poster framing (posterAlignX / posterAlignY) added in 0.4.14:
+    the request behind it was this one, and a setting nothing needs is a setting
+    that will be wrong somewhere. The poster is the centred crop it was before.
+
+ -- Lumina <lumina@example.com>  Fri, 18 Sep 2026 09:41:59 +0800
+
 lumina-lock (0.4.15) unstable; urgency=medium
 
   * Fixed the random-video list staying empty after a video was added. dtk6's

@@ -68,12 +68,12 @@ set_pool video-random "$GONE" /tmp/also-missing.mp4
 cfg_env "$BIN" allgone || rc=1
 
 echo
-echo "########## 5) 旧 schema（没有 videoPaths / posterAlign*）：必须回退不崩 ##########"
+echo "########## 5) 旧 schema（没有 videoPaths / clockPosition*）：必须回退不崩 ##########"
 mkdir -p "$SB/old/usr/share/dsg/configs/org.lumina.lock"
 python3 - "$SCHEMA" "$SB/old/usr/share/dsg/configs/org.lumina.lock/org.lumina.lock.json" <<'PY'
 import json, sys
 j = json.load(open(sys.argv[1]))
-for k in ("videoPaths", "posterAlignX", "posterAlignY"):
+for k in ("videoPaths", "clockPositionX", "clockPositionY"):
     j["contents"].pop(k, None)
 json.dump(j, open(sys.argv[2], "w"), ensure_ascii=False, indent=4)
 PY

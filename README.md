@@ -15,7 +15,7 @@
 - **封面可取景**：动态壁纸的封面（静态图，用于遮住视频首帧前的那一瞬）可以调横向/纵向取景位置，避免封面主体被裁掉。固定视频与随机列表共用这一张封面；默认居中，与旧版行为完全一致
 - 壁纸整摞采用「**淡出上层遮挡物**」揭示：底色层在最上面盖住整摞，就绪后交叉淡出（500ms），poster 同理盖在视频之上。不用「淡入内容」是因为 `VideoOutput` 的 item opacity 不参与混合，而 `Rectangle`/`Image` 的会。进入时无黑屏闪烁；锁屏退出后释放视频资源
 - **时间 / 日期字体粗细可调**（细体 / 常规 / 中等 / 半粗 / 粗体），控制中心里改完即时生效
-- **控制中心集成**：随包附带 dde-control-center 插件（顶级模块「锁屏壁纸」），可设置静态图片 / 动态视频（单个）/ 动态视频（随机，含视频列表）壁纸及封面、封面取景位置、时间与日期字重，写入 `org.lumina.lock` DConfig；锁屏启动时读取、驻留时实时生效（CLI `--wallpaper`/`--video` 优先）
+- **控制中心集成**：随包附带 dde-control-center 插件（顶级模块「锁屏壁纸」），可设置静态图片 / 动态视频（单个）/ 动态视频（随机，含视频列表）壁纸及封面、时间/日期位置、字重与字号，写入 `org.lumina.lock` DConfig；锁屏启动时读取、驻留时实时生效（CLI `--wallpaper`/`--video` 优先）
 - PAM 密码认证（C++ 层、异步、密码不落日志、生命周期尽量短）
 - 认证失败内联错误提示 + 密码框轻微 shake；成功则播放退出动画后解锁
 - **入场**：时钟/日期以固定字号单次淡入（480ms），不做尺寸动画；**再次上锁时同样只淡入一次**（`resetForLock()` 关闭 `animating` 让场景吸附回 Idle，入场淡入必须同样受它约束，否则会把上次遗留的满不透明度先淡出再淡入）——`unit` 取自窗口高度，窗口定尺寸前为 0，若此时动画尺寸会呈现"从无到有地长大"
@@ -67,7 +67,7 @@ src/
 ├── auth/PamAuthenticator   # PAM：worker 线程 + conversation + 结果回传 GUI 线程
 ├── session/LockSession     # 会话门面：用户身份、认证编排、锁定状态
 ├── session/LockService     # dde-lock lockFront D-Bus 适配器（QDBusAbstractAdaptor）
-├── wallpaper/WallpaperManager  # 壁纸“是什么”（类型 + 源 + 封面取景），不含渲染
+├── wallpaper/WallpaperManager  # 壁纸“是什么”（类型 + 源 + 封面），不含渲染
 ├── wallpaper/WallpaperConfig   # 从 org.lumina.lock DConfig 读取壁纸设置并应用；随机视频池在这里抽签
 ├── appearance/AppearanceConfig # 从同一 DConfig 读取时间 / 日期字重
 ├── screen/ScreenManager    # 每屏一个全屏窗口、活跃认证屏的选择、X11 锁屏属性与键盘抓取、热插拔
@@ -124,9 +124,9 @@ QML AuthView.submit(password)
 - **封面横向取景** / **封面纵向取景**：动态壁纸封面铺满裁剪时的取景位置，0 = 贴左/上边缘、50 = 居中（默认）、100 = 贴右/下边缘，超范围会被夹到边界。固定视频与随机列表共用这一张封面
 - **时间字号** / **日期字号**：以 1080p 高度为基准的像素值（时间 80–240、日期 14–48），按屏幕分辨率等比缩放
 - **时间字体粗细** / **日期字体粗细**：细体 / 常规 / 中等 / 半粗 / 粗体
-- **恢复默认**：清空配置（含随机视频列表与封面取景），回到内置壁纸与默认字重
+- **恢复默认**：清空配置（含随机视频列表），回到内置壁纸、默认字重与居中位置
 
-插件写入 `org.lumina.lock` DConfig（键 `wallpaperType` / `wallpaperPath` / `videoPath` / `posterPath` / `videoPaths` / `posterAlignX` / `posterAlignY` / `clockWeight` / `dateWeight` / `clockFontSize` / `dateFontSize`，schema 随包装在 `/usr/share/dsg/configs/org.lumina.lock/`）。锁屏进程读取同一份配置：启动时应用，驻留期间实时生效（DConfig 变更通知），因此**在控制中心改完即可直接上锁验证**。字重取值为 `thin` / `extralight` / `light` / `normal` / `medium` / `demibold` / `bold`，无法识别的值回退到默认（时间 `light`、日期 `medium`）；字号超出范围会被夹到边界（时间 80–240、日期 14–48），封面取景同理（0–100）。因此手改配置不会导致锁屏异常。
+插件写入 `org.lumina.lock` DConfig（键 `wallpaperType` / `wallpaperPath` / `videoPath` / `posterPath` / `videoPaths` / `clockPositionX` / `clockPositionY` / `clockWeight` / `dateWeight` / `clockFontSize` / `dateFontSize`，schema 随包装在 `/usr/share/dsg/configs/org.lumina.lock/`）。锁屏进程读取同一份配置：启动时应用，驻留期间实时生效（DConfig 变更通知），因此**在控制中心改完即可直接上锁验证**。字重取值为 `thin` / `extralight` / `light` / `normal` / `medium` / `demibold` / `bold`，无法识别的值回退到默认（时间 `light`、日期 `medium`）；字号超出范围会被夹到边界（时间 80–240、日期 14–48），时间/日期位置同理（0–100，50 = 居中）。因此手改配置不会导致锁屏异常。
 
 `video-random` 的抽签发生在**锁屏进程内**、每次上锁的那一刻（`WallpaperConfig::pickForNewLock()`，挂在上锁信号上、先抽后显窗），抽签结果不进配置：控制中心只维护列表，锁屏只负责每次从列表里取一个不同的。列表项在每次抽签时重新校验是否存在，抽中的视频每次都会以一行 `Wallpaper: random draw <path>` 写进服务日志，便于核查。
 
@@ -146,9 +146,9 @@ dde-dconfig set -a org.lumina.lock -r org.lumina.lock -k videoPaths \
     -v '["/path/a.mp4","/path/b.mp4","/path/c.mp4"]'
 dde-dconfig set -a org.lumina.lock -r org.lumina.lock -k wallpaperType -v video-random
 
-# 封面取景（0 = 贴左/上边缘，50 = 居中，100 = 贴右/下边缘）
-dde-dconfig set -a org.lumina.lock -r org.lumina.lock -k posterAlignX -v 0
-dde-dconfig set -a org.lumina.lock -r org.lumina.lock -k posterAlignY -v 100
+# 时间/日期位置（0 = 贴左/上边缘，50 = 居中，100 = 贴右/下边缘）
+dde-dconfig set -a org.lumina.lock -r org.lumina.lock -k clockPositionX -v 0
+dde-dconfig set -a org.lumina.lock -r org.lumina.lock -k clockPositionY -v 100
 ```
 
 看这次上锁抽中了哪一个：

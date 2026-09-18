@@ -126,7 +126,7 @@ int main(int argc, char **argv)
         check(wm.source().toString().contains(QLatin1String("default.jpg")),
               "回退的是内置默认壁纸", QStringLiteral("-> %1").arg(wm.source().toString()));
     } else if (mode == QLatin1String("oldschema")) {
-        // 装的是旧 schema（没有 videoPaths / posterAlign*）时，锁屏必须优雅回退。
+        // 装的是旧 schema（没有 videoPaths / clockPosition*）时，锁屏必须优雅回退。
         // 这里能跑完本身就是断言：不带默认值读不存在的键会让 dtk6 段错误。
         cfg.applyTo(wm);
         cfg.pickForNewLock(wm);

@@ -52,26 +52,6 @@
             "permissions": "readwrite",
             "visibility": "private"
         },
-        "posterAlignX": {
-            "value": 50,
-            "serial": 0,
-            "flags": [],
-            "name": "Video poster horizontal framing",
-            "name[zh_CN]": "封面横向取景位置",
-            "description": "封面图铺满裁剪时的横向取景位置，按百分比：0 = 贴左边缘，50 = 居中，100 = 贴右边缘。允许 0-100，默认 50。",
-            "permissions": "readwrite",
-            "visibility": "private"
-        },
-        "posterAlignY": {
-            "value": 50,
-            "serial": 0,
-            "flags": [],
-            "name": "Video poster vertical framing",
-            "name[zh_CN]": "封面纵向取景位置",
-            "description": "封面图铺满裁剪时的纵向取景位置，按百分比：0 = 贴上边缘，50 = 居中，100 = 贴下边缘。允许 0-100，默认 50。",
-            "permissions": "readwrite",
-            "visibility": "private"
-        },
         "clockWeight": {
             "value": "light",
             "serial": 0,
@@ -109,6 +89,26 @@
             "name": "Date font size",
             "name[zh_CN]": "日期字号",
             "description": "锁屏日期字号，按 1080p 高度下的像素值给出（实际按屏幕分辨率等比缩放）。允许 14-48，默认 27。",
+            "permissions": "readwrite",
+            "visibility": "private"
+        },
+        "clockPositionX": {
+            "value": 50,
+            "serial": 0,
+            "flags": [],
+            "name": "Clock block horizontal position",
+            "name[zh_CN]": "时间日期横向位置",
+            "description": "锁屏时间与日期这一组的横向位置，按百分比：0 = 贴左边缘，50 = 居中（默认，等同旧行为），100 = 贴右边缘。允许 0-100，越界值会被夹住。",
+            "permissions": "readwrite",
+            "visibility": "private"
+        },
+        "clockPositionY": {
+            "value": 50,
+            "serial": 0,
+            "flags": [],
+            "name": "Clock block vertical position",
+            "name[zh_CN]": "时间日期纵向位置",
+            "description": "锁屏时间与日期这一组的纵向位置，按百分比：0 = 贴上边缘，50 = 居中（默认，等同旧行为），100 = 贴下边缘。允许 0-100，越界值会被夹住。",
             "permissions": "readwrite",
             "visibility": "private"
         }

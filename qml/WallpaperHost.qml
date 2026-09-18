@@ -98,48 +98,15 @@ Item {
     // `visible` follows the opacity, which keeps the item alive for the length
     // of the fade.
     //
-    // Framing: Image.PreserveAspectCrop always crops around the centre, so to
-    // move that crop window the image is let out to its full cover-scaled size
-    // (see width/height below) and panned inside this clipping frame. Sizing the
-    // image to coverScale * naturalSize is what keeps the pan from zooming: at
-    // that size the image's own crop is a no-op, because the box it fills has
-    // the poster's aspect ratio rather than the screen's. So panning reveals a
-    // different part of the poster at exactly the scale the centred crop would
-    // have used. One axis has slack and the other does not; when the poster and
-    // the screen share an aspect ratio both slacks are 0 and the offsets cancel
-    // out, because there is nothing to pan.
-    Item {
-        id: posterFrame
+    Image {
+        id: poster
         anchors.fill: parent
-        clip: true
         visible: root.isVideo && poster.opacity > 0.001
-
-        // The cover scale for this screen — the same one Image.PreserveAspectCrop
-        // would derive on its own. `sourceSize` is the poster's natural size in
-        // the pixel space this Image decodes into.
-        readonly property real naturalWidth: poster.sourceSize.width
-        readonly property real naturalHeight: poster.sourceSize.height
-        readonly property real coverScale: (naturalWidth > 0 && naturalHeight > 0)
-            ? Math.max(width / naturalWidth, height / naturalHeight)
-            : 0
-        readonly property real slackX: Math.max(0, coverScale * naturalWidth - width)
-        readonly property real slackY: Math.max(0, coverScale * naturalHeight - height)
-
-        Image {
-            id: poster
-            // Before the poster is decoded sourceSize is unknown, so the first
-            // frame is exactly the centred crop and the framing lands on the
-            // frame after — a geometry change, never a reload.
-            width: posterFrame.width + posterFrame.slackX
-            height: posterFrame.height + posterFrame.slackY
-            x: -posterFrame.slackX * WallpaperManager.posterAlignX
-            y: -posterFrame.slackY * WallpaperManager.posterAlignY
-            source: WallpaperManager.poster
-            fillMode: Image.PreserveAspectCrop
-            asynchronous: true
-            opacity: (root.videoShowing || WallpaperManager.poster.toString() === "") ? 0 : 1
-            MotionBehavior on opacity { duration: 500 }
-        }
+        source: WallpaperManager.poster
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        opacity: (root.videoShowing || WallpaperManager.poster.toString() === "") ? 0 : 1
+        MotionBehavior on opacity { duration: 500 }
     }
 
     // --- Cover ---

@@ -162,36 +162,36 @@ DccObject {
     }
 
     DccObject {
-        name: "posterAlignX"
+        name: "clockPositionX"
         parentName: "luminalock"
-        displayName: qsTr("封面横向取景")
-        description: qsTr("铺满裁剪时保留画面的哪一段：0 = 贴左边缘，50 = 居中，100 = 贴右边缘")
-        weight: 42
+        displayName: qsTr("时间日期横向位置")
+        description: qsTr("0 = 贴左边缘，50 = 居中（默认），100 = 贴右边缘")
+        weight: 52
         backgroundType: DccObject.Normal
         pageType: DccObject.Editor
         page: D.SpinBox {
             from: 0
             to: 100
             editable: true
-            value: dccData.posterAlignX
-            onValueChanged: dccData.setPosterAlignX(value)
+            value: dccData.clockPositionX
+            onValueChanged: dccData.setClockPositionX(value)
         }
     }
 
     DccObject {
-        name: "posterAlignY"
+        name: "clockPositionY"
         parentName: "luminalock"
-        displayName: qsTr("封面纵向取景")
-        description: qsTr("铺满裁剪时保留画面的哪一段：0 = 贴上边缘，50 = 居中，100 = 贴下边缘")
-        weight: 44
+        displayName: qsTr("时间日期纵向位置")
+        description: qsTr("0 = 贴上边缘，50 = 居中（默认），100 = 贴下边缘")
+        weight: 54
         backgroundType: DccObject.Normal
         pageType: DccObject.Editor
         page: D.SpinBox {
             from: 0
             to: 100
             editable: true
-            value: dccData.posterAlignY
-            onValueChanged: dccData.setPosterAlignY(value)
+            value: dccData.clockPositionY
+            onValueChanged: dccData.setClockPositionY(value)
         }
     }
 
@@ -270,7 +270,7 @@ DccObject {
         name: "reset"
         parentName: "luminalock"
         displayName: qsTr("恢复默认")
-        description: qsTr("清空壁纸设置（含随机视频列表与封面取景）并回到默认字号与字重")
+        description: qsTr("清空壁纸设置（含随机视频列表）并回到默认字号、字重与时间日期位置")
         weight: 80
         backgroundType: DccObject.Normal
         pageType: DccObject.Editor

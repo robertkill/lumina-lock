@@ -59,15 +59,15 @@ int main(int argc, char **argv)
 
     const QString kPool = QStringLiteral("videoPaths");
     const QString kType = QStringLiteral("wallpaperType");
-    const QString kAlignX = QStringLiteral("posterAlignX");
-    const QString kAlignY = QStringLiteral("posterAlignY");
+    const QString kAlignX = QStringLiteral("clockPositionX");
+    const QString kAlignY = QStringLiteral("clockPositionY");
 
     if (mode == QLatin1String("defaults")) {
         // 全新沙箱：没写过任何值时，schema 默认值要能读出来。
         say(QStringLiteral("schema 默认值:"));
         check(cfg->value(kPool).toStringList().isEmpty(), QStringLiteral("videoPaths 默认空列表"),
               list(cfg->value(kPool)));
-        check(cfg->value(kAlignX).toInt() == 50, QStringLiteral("posterAlignX 默认 50"),
+        check(cfg->value(kAlignX).toInt() == 50, QStringLiteral("clockPositionX 默认 50"),
               QStringLiteral("-> %1").arg(cfg->value(kAlignX).toInt()));
         check(cfg->value(kType).toString() == QLatin1String("none"),
               QStringLiteral("wallpaperType 默认 none"),
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
         // 只改取景值：用来触发锁屏的 live reload（changed() → applyTo → 再抽一次签）
         const int x = argc > 2 ? QString::fromLocal8Bit(argv[2]).toInt() : 50;
         cfg->setValue(kAlignX, x);
-        say(QStringLiteral("已写入 posterAlignX=%1").arg(x));
+        say(QStringLiteral("已写入 clockPositionX=%1").arg(x));
     } else if (mode == QLatin1String("write-args")) {
         // 用库来配置沙箱：probe write-args <type> <video...>
         const QString type = argc > 2 ? QString::fromLocal8Bit(argv[2]) : QStringLiteral("none");
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
         say(QStringLiteral("另一个进程读回:"));
         check(cfg->value(kPool).toStringList().isEmpty(), QStringLiteral("videoPaths 为空"),
               list(cfg->value(kPool)));
-        check(cfg->value(kAlignX).toInt() == 30, QStringLiteral("取景值不受影响"),
+        check(cfg->value(kAlignX).toInt() == 30, QStringLiteral("位置值不受影响"),
               QStringLiteral("-> %1").arg(cfg->value(kAlignX).toInt()));
     } else {
         say(QStringLiteral("  FAIL 未知模式 %1").arg(mode));

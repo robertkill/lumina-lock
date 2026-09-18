@@ -164,6 +164,14 @@ Window {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
             anchors.verticalCenterOffset: content.clockOffset
+            // 时间/日期位置：0 = 贴左/上边缘，50 = 居中（默认，等同旧行为），
+            // 100 = 贴右/下边缘。偏移按「屏幕尺寸 − 这一组自身尺寸」算，所以无论
+            // 字号多大、怎么动画，这一组都不会跑出屏幕。
+            anchors.horizontalCenterOffset: (parent.width - clock.width)
+                                            * (LockAppearance.clockPositionX - 0.5)
+            anchors.verticalCenterOffset: content.clockOffset
+                                          + (parent.height - clock.height)
+                                            * (LockAppearance.clockPositionY - 0.5)
             opacity: content.sceneReady ? 1 : 0
             MotionBehavior on opacity { duration: 480; active: content.animating }
         }

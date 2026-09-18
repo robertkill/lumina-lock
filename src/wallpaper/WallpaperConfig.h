@@ -62,9 +62,6 @@ private:
     /** Apply `video-random`: pick from the pool, or fall back to the default. */
     void applyRandomVideo(WallpaperManager &wm);
 
-    /** Apply the poster framing configured for the current wallpaper. */
-    void applyPosterAlignment(WallpaperManager &wm);
-
     /**
      * Read a key, or the fallback when the installed schema does not have it.
      *

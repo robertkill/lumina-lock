@@ -17,15 +17,6 @@ const QString kImageKey = QStringLiteral("wallpaperPath");
 const QString kVideoKey = QStringLiteral("videoPath");
 const QString kPosterKey = QStringLiteral("posterPath");
 const QString kVideoPoolKey = QStringLiteral("videoPaths");
-const QString kPosterAlignXKey = QStringLiteral("posterAlignX");
-const QString kPosterAlignYKey = QStringLiteral("posterAlignY");
-
-// Framing is stored as whole percent — 0 = flush with the left/top edge,
-// 100 = flush with the right/bottom edge — so it stays readable both in the
-// control center and on the command line. 50 is the centred crop.
-constexpr int kAlignDefault = 50;
-constexpr int kAlignMin = 0;
-constexpr int kAlignMax = 100;
 
 const QString kDefaultWallpaper = QStringLiteral("qrc:/assets/wallpapers/default.jpg");
 
@@ -34,12 +25,6 @@ QUrl localOrNull(const QString &path)
     return path.isEmpty() ? QUrl() : QUrl::fromLocalFile(path);
 }
 
-// Bounds are enforced here rather than trusted from the config: a hand-edited
-// value must not be able to pan the poster off its own image.
-qreal alignFactor(int percent)
-{
-    return qreal(qBound(kAlignMin, percent, kAlignMax)) / kAlignMax;
-}
 } // namespace
 
 WallpaperConfig::WallpaperConfig(QObject *parent)
@@ -60,7 +45,7 @@ QString WallpaperConfig::configuredType() const
 QVariant WallpaperConfig::configValue(const QString &key, const QVariant &fallback) const
 {
     // dtk6 的 DConfigFile::value() 遇到 meta 里没有的键会空指针崩溃（文件后端），
-    // 所以先问 keyList()。装的是旧 schema（没有 videoPaths / posterAlign*）时，
+    // 所以先问 keyList()。装的是旧 schema（没有 videoPaths）时，
     // 锁屏必须回退到默认，而不是崩掉。
     if (!m_config || !m_config->isValid() || !m_config->keyList().contains(key))
         return fallback;
@@ -87,13 +72,6 @@ QStringList WallpaperConfig::videoPool() const
             pool.append(path);
     }
     return pool;
-}
-
-void WallpaperConfig::applyPosterAlignment(WallpaperManager &wm)
-{
-    const int x = configValue(kPosterAlignXKey, kAlignDefault).toInt();
-    const int y = configValue(kPosterAlignYKey, kAlignDefault).toInt();
-    wm.setPosterAlignment(alignFactor(x), alignFactor(y));
 }
 
 void WallpaperConfig::applyRandomVideo(WallpaperManager &wm)
@@ -123,8 +101,6 @@ void WallpaperConfig::applyRandomVideo(WallpaperManager &wm)
 
 void WallpaperConfig::applyTo(WallpaperManager &wm)
 {
-    applyPosterAlignment(wm);
-
     const QString type = configuredType();
 
     if (type == QLatin1String("video")) {
@@ -157,7 +133,7 @@ void WallpaperConfig::pickForNewLock(WallpaperManager &wm)
 void WallpaperConfig::onValueChanged(const QString &key)
 {
     static const QSet<QString> watched{kTypeKey, kImageKey, kVideoKey, kPosterKey,
-                                      kVideoPoolKey, kPosterAlignXKey, kPosterAlignYKey};
+                                      kVideoPoolKey};
     if (watched.contains(key))
         emit changed();
 }

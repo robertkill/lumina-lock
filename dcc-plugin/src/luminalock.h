@@ -31,8 +31,8 @@ class Luminalock : public QObject
     Q_PROPERTY(QString videoPath READ videoPath NOTIFY videoPathChanged)
     Q_PROPERTY(QString posterPath READ posterPath NOTIFY posterPathChanged)
     Q_PROPERTY(QStringList videoPaths READ videoPaths NOTIFY videoPathsChanged)
-    Q_PROPERTY(int posterAlignX READ posterAlignX NOTIFY posterAlignXChanged)
-    Q_PROPERTY(int posterAlignY READ posterAlignY NOTIFY posterAlignYChanged)
+    Q_PROPERTY(int clockPositionX READ clockPositionX NOTIFY clockPositionXChanged)
+    Q_PROPERTY(int clockPositionY READ clockPositionY NOTIFY clockPositionYChanged)
     Q_PROPERTY(QString clockWeight READ clockWeight NOTIFY clockWeightChanged)
     Q_PROPERTY(QString dateWeight READ dateWeight NOTIFY dateWeightChanged)
     Q_PROPERTY(int clockFontSize READ clockFontSize NOTIFY clockFontSizeChanged)
@@ -54,8 +54,8 @@ public:
     QString videoPath() const { return m_videoPath; }
     QString posterPath() const { return m_posterPath; }
     QStringList videoPaths() const { return m_videoPaths; }
-    int posterAlignX() const { return m_posterAlignX; }
-    int posterAlignY() const { return m_posterAlignY; }
+    int clockPositionX() const { return m_clockPositionX; }
+    int clockPositionY() const { return m_clockPositionY; }
     QString clockWeight() const { return m_clockWeight; }
     QString dateWeight() const { return m_dateWeight; }
     int clockFontSize() const { return m_clockFontSize; }
@@ -68,8 +68,8 @@ public:
     Q_INVOKABLE bool addVideo(const QUrl &url);
     /** Drop one entry from the random pool. */
     Q_INVOKABLE void removeVideo(const QString &path);
-    Q_INVOKABLE void setPosterAlignX(int percent);
-    Q_INVOKABLE void setPosterAlignY(int percent);
+    Q_INVOKABLE void setClockPositionX(int percent);
+    Q_INVOKABLE void setClockPositionY(int percent);
     Q_INVOKABLE void setClockWeight(const QString &weight);
     Q_INVOKABLE void setDateWeight(const QString &weight);
     Q_INVOKABLE void setClockFontSize(int size);
@@ -82,8 +82,8 @@ Q_SIGNALS:
     void videoPathChanged(const QString &path);
     void posterPathChanged(const QString &path);
     void videoPathsChanged(const QStringList &paths);
-    void posterAlignXChanged(int percent);
-    void posterAlignYChanged(int percent);
+    void clockPositionXChanged(int percent);
+    void clockPositionYChanged(int percent);
     void clockWeightChanged(const QString &weight);
     void dateWeightChanged(const QString &weight);
     void clockFontSizeChanged(int size);
@@ -114,8 +114,8 @@ private:
     QString m_videoPath;
     QString m_posterPath;
     QStringList m_videoPaths;
-    int m_posterAlignX = 50;
-    int m_posterAlignY = 50;
+    int m_clockPositionX = 50;
+    int m_clockPositionY = 50;
     QString m_clockWeight;
     QString m_dateWeight;
     int m_clockFontSize = 150;

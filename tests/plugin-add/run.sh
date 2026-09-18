@@ -22,7 +22,7 @@ python3 - "$SCHEMA" "$SB/old/usr/share/dsg/configs/org.lumina.lock/org.lumina.lo
 import json, sys
 src, dst = sys.argv[1], sys.argv[2]
 j = json.load(open(src))
-for k in ("videoPaths", "posterAlignX", "posterAlignY"):
+for k in ("videoPaths", "clockPositionX", "clockPositionY"):
     j["contents"].pop(k, None)
 json.dump(j, open(dst, "w"), ensure_ascii=False, indent=4)
 print("旧 schema 的键:", sorted(j["contents"]))

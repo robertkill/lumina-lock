@@ -15,14 +15,14 @@ const QString kImageKey = QStringLiteral("wallpaperPath");
 const QString kVideoKey = QStringLiteral("videoPath");
 const QString kPosterKey = QStringLiteral("posterPath");
 const QString kVideoPoolKey = QStringLiteral("videoPaths");
-const QString kPosterAlignXKey = QStringLiteral("posterAlignX");
-const QString kPosterAlignYKey = QStringLiteral("posterAlignY");
+const QString kClockPositionXKey = QStringLiteral("clockPositionX");
+const QString kClockPositionYKey = QStringLiteral("clockPositionY");
 const QString kClockWeightKey = QStringLiteral("clockWeight");
 const QString kDateWeightKey = QStringLiteral("dateWeight");
 const QString kClockSizeKey = QStringLiteral("clockFontSize");
 const QString kDateSizeKey = QStringLiteral("dateFontSize");
 
-constexpr int kAlignDefault = 50;
+constexpr int kPositionDefault = 50;
 } // namespace
 
 Luminalock::Luminalock(QObject *parent)
@@ -46,8 +46,8 @@ void Luminalock::reload()
     m_videoPath = configValue(kVideoKey, QString()).toString();
     m_posterPath = configValue(kPosterKey, QString()).toString();
     m_videoPaths = configValue(kVideoPoolKey, QStringList()).toStringList();
-    m_posterAlignX = configValue(kPosterAlignXKey, kAlignDefault).toInt();
-    m_posterAlignY = configValue(kPosterAlignYKey, kAlignDefault).toInt();
+    m_clockPositionX = configValue(kClockPositionXKey, kPositionDefault).toInt();
+    m_clockPositionY = configValue(kClockPositionYKey, kPositionDefault).toInt();
     m_clockWeight = configValue(kClockWeightKey, QStringLiteral("light")).toString();
     m_dateWeight = configValue(kDateWeightKey, QStringLiteral("medium")).toString();
     m_clockFontSize = configValue(kClockSizeKey, 150).toInt();
@@ -57,8 +57,8 @@ void Luminalock::reload()
     Q_EMIT videoPathChanged(m_videoPath);
     Q_EMIT posterPathChanged(m_posterPath);
     Q_EMIT videoPathsChanged(m_videoPaths);
-    Q_EMIT posterAlignXChanged(m_posterAlignX);
-    Q_EMIT posterAlignYChanged(m_posterAlignY);
+    Q_EMIT clockPositionXChanged(m_clockPositionX);
+    Q_EMIT clockPositionYChanged(m_clockPositionY);
     Q_EMIT clockWeightChanged(m_clockWeight);
     Q_EMIT dateWeightChanged(m_dateWeight);
     Q_EMIT clockFontSizeChanged(m_clockFontSize);
@@ -205,14 +205,14 @@ void Luminalock::removeVideo(const QString &path)
         setLastError(QString());
 }
 
-void Luminalock::setPosterAlignX(int percent)
+void Luminalock::setClockPositionX(int percent)
 {
-    setConfigValue(kPosterAlignXKey, percent);
+    setConfigValue(kClockPositionXKey, percent);
 }
 
-void Luminalock::setPosterAlignY(int percent)
+void Luminalock::setClockPositionY(int percent)
 {
-    setConfigValue(kPosterAlignYKey, percent);
+    setConfigValue(kClockPositionYKey, percent);
 }
 
 void Luminalock::setClockWeight(const QString &weight)
@@ -242,8 +242,8 @@ void Luminalock::resetToDefault()
     m_config->setValue(kVideoKey, QString());
     m_config->setValue(kPosterKey, QString());
     m_config->setValue(kVideoPoolKey, QStringList());
-    m_config->setValue(kPosterAlignXKey, kAlignDefault);
-    m_config->setValue(kPosterAlignYKey, kAlignDefault);
+    m_config->setValue(kClockPositionXKey, kPositionDefault);
+    m_config->setValue(kClockPositionYKey, kPositionDefault);
     m_config->setValue(kClockWeightKey, QStringLiteral("light"));
     m_config->setValue(kDateWeightKey, QStringLiteral("medium"));
     m_config->setValue(kClockSizeKey, 150);

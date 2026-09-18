@@ -11,6 +11,15 @@ Item {
     property real unit: 1
     property bool compact: false
 
+    // The block's own size, so the scene can place it by percentage: 0 = flush
+    // with the left/top edge, 50 = centred (the default), 100 = flush with the
+    // right/bottom edge. Sized from the Column rather than fixed, because the
+    // type grows and shrinks with the state and the entry animation.
+    implicitWidth: column.implicitWidth
+    implicitHeight: column.implicitHeight
+    width: implicitWidth
+    height: implicitHeight
+
     // Backdrop plumbing, forwarded from the scene.
     property Item glassSource: null
     property int glassRefreshToken: 0

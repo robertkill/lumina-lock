@@ -63,15 +63,3 @@ void WallpaperManager::clear()
     m_poster = QUrl();
     emit wallpaperChanged();
 }
-
-void WallpaperManager::setPosterAlignment(qreal x, qreal y)
-{
-    const qreal clampedX = qBound(0.0, x, 1.0);
-    const qreal clampedY = qBound(0.0, y, 1.0);
-    if (qFuzzyCompare(m_posterAlignX, clampedX) && qFuzzyCompare(m_posterAlignY, clampedY))
-        return;
-
-    m_posterAlignX = clampedX;
-    m_posterAlignY = clampedY;
-    emit posterAlignmentChanged();
-}
