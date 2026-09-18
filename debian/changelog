@@ -1,3 +1,24 @@
+lumina-lock (0.4.23) unstable; urgency=medium
+
+  * The control-center icon finally shows up. It had been declared as a file name
+    ("luminalock.svg"), and a module icon is resolved by *name* against the DCI
+    icon directories — a name nothing provided, so it fell back to the default
+    icon. That was true of the icon before this one too; it never rendered.
+    The icon now ships the way every other package ships one: a DCI file in
+    /usr/share/dsg/icons, 32px and 128px layers, light and dark, referenced as
+    "luminalock".
+
+ -- Lumina <lumina@example.com>  Fri, 18 Sep 2026 13:21:20 +0800
+
+lumina-lock (0.4.22) unstable; urgency=medium
+
+  * The clock only fades when its position has been moved. Left in the middle, it
+    keeps the animation it always had — the 16% lift and the smaller type — and
+    the cross-fade belongs to the case it was asked for: a clock placed somewhere
+    else leaving that spot as another arrives in the middle.
+
+ -- Lumina <lumina@example.com>  Fri, 18 Sep 2026 13:13:35 +0800
+
 lumina-lock (0.4.21) unstable; urgency=medium
 
   * The clock now leaves one place and arrives at another. Fading it out where it

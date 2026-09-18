@@ -177,8 +177,9 @@ Window {
             anchors.verticalCenterOffset: (parent.height - clock.height)
                                           * (LockAppearance.clockPositionY - 0.5)
                                           + content.clockOffset
-            // 认证时上移的同时淡出，收起时下移淡入（完全隐去再回来）。
-            opacity: content.sceneReady ? content.clockReveal : 0
+            // 位置没调过（就是默认正中）时保持原来的动画：只上移 16%，不淡出；
+            // 调过位置时才有"这里渐隐 + 正中渐显"的交叉。
+            opacity: content.sceneReady ? (atCenter ? 1 : content.clockReveal) : 0
             MotionBehavior on opacity { duration: 480; active: content.animating }
         }
 
