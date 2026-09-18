@@ -1,3 +1,13 @@
+lumina-lock (0.4.27) unstable; urgency=medium
+
+  * The icon ships in both places a plugin icon can be looked up, with the layer
+    layout the control center's own icons use: a 24px layer in light and dark,
+    next to the plugin's QML and under /usr/share/dsg/icons. The previous attempt
+    moved it to the QML directory only and left a 128px layer, and neither is what
+    the icons that render at the right size carry.
+
+ -- Lumina <lumina@example.com>  Fri, 18 Sep 2026 13:53:39 +0800
+
 lumina-lock (0.4.26) unstable; urgency=medium
 
   * The icon is shipped the way the control center's own plugins ship theirs. It
