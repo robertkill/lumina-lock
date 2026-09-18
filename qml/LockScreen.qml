@@ -166,20 +166,23 @@ Window {
             revealed: content.sceneReady
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
-            // 时间/日期位置：0 = 贴左/上边缘，50 = 居中（默认，等同旧行为），
-            // 100 = 贴右/下边缘。偏移按「屏幕尺寸 − 这一组自身尺寸」算，所以无论
-            // 字号多大、怎么动画，这一组都不会跑出屏幕。
-            anchors.horizontalCenterOffset: (parent.width - clock.width)
-                                            * (LockAppearance.clockPositionX - 0.5)
-            // 认证时上移 16% 屏高给密码框腾位置，但整个位移夹在「不越界」范围内：
-            // 时间日期本来就贴顶时，上移会自动减少，不会被推出屏幕。
-            readonly property real clockRoom: Math.max(0, parent.height - clock.height) / 2
-            readonly property real clockOffsetY: Math.max(-clockRoom,
-                                                          Math.min(clockRoom,
-                                                                   content.clockOffset
-                                                                   + (parent.height - clock.height)
-                                                                     * (LockAppearance.clockPositionY - 0.5)))
-            anchors.verticalCenterOffset: clockOffsetY
+            // 时间/日期位置：0 = 贴左/上边缘，50 = 居中（默认），100 = 贴右/下边缘。
+            // 认证时这一组会**动画到屏幕正中**（authReveal 就是那条动画的时间轴，
+            // 0 = 待机、1 = 认证中），所以密码框升起时它往中间收拢并渐隐，收起时再
+            // 平滑回到你设的位置。
+            readonly property real authProgress: content.authReveal
+            readonly property real alignX: LockAppearance.clockPositionX
+                                           + (0.5 - LockAppearance.clockPositionX) * authProgress
+            readonly property real alignY: LockAppearance.clockPositionY
+                                           + (0.5 - LockAppearance.clockPositionY) * authProgress
+            // 本来就居中时没有"收拢"可做，就按原设计上移 16% 给密码框腾位置。
+            readonly property bool clockAtCenter: Math.abs(LockAppearance.clockPositionX - 0.5) < 0.001
+                                                  && Math.abs(LockAppearance.clockPositionY - 0.5) < 0.001
+            readonly property real lift: clockAtCenter ? content.clockOffset : 0
+            // 不做越界夹取：夹取会让位移量随字号和动画过程变化，看起来就是顿。
+            // 贴顶时上移会短暂越界，但那一刻正在渐隐，看不出来。
+            anchors.horizontalCenterOffset: (parent.width - clock.width) * (alignX - 0.5)
+            anchors.verticalCenterOffset: (parent.height - clock.height) * (alignY - 0.5) + lift
             // 认证时上移的同时淡出，收起时下移淡入（完全隐去再回来）。
             opacity: content.sceneReady ? content.clockReveal : 0
             MotionBehavior on opacity { duration: 480; active: content.animating }

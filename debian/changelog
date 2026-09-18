@@ -1,3 +1,15 @@
+lumina-lock (0.4.20) unstable; urgency=medium
+
+  * Smoothed the clock's exit. The lift had been clamped to the room the block
+    had, which made the distance change with the type size while the animation
+    ran — the kind of correction that reads as a stutter. It is a plain offset
+    again, and the position itself animates now: a clock left off-centre gathers
+    to the middle of the screen as it fades, and settles back where it was left
+    as it returns. A clock already centred keeps the original 16% lift. Move and
+    fade are one motion, driven by the same progress the password box uses.
+
+ -- Lumina <lumina@example.com>  Fri, 18 Sep 2026 11:59:15 +0800
+
 lumina-lock (0.4.19) unstable; urgency=medium
 
   * The clock leaves when the password box arrives: it lifts and fades out as the
