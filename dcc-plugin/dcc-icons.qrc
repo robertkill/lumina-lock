@@ -1,0 +1,9 @@
+<!DOCTYPE RCC>
+<!-- 控制中心从资源路径 :/dsg/icons/<name>.dci 解析模块图标（它自带的图标就是
+     <qresource prefix="/dsg"> + icons/*.dci）。插件自己注册同样的前缀，图标才能
+     被找到——放到文件系统 /usr/share/dsg/icons 是没用的。 -->
+<RCC>
+    <qresource prefix="/dsg/icons">
+        <file>qml/luminalock.dci</file>
+    </qresource>
+</RCC>

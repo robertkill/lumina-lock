@@ -15,6 +15,10 @@ file(GLOB_RECURSE PLUGIN_SRCS
 
 add_library(${PLUGIN_NAME} MODULE ${PLUGIN_SRCS})
 
+# 模块图标作为资源注册成 :/dsg/icons/luminalock.dci
+set(CMAKE_AUTORCC ON)
+target_sources(${PLUGIN_NAME} PRIVATE dcc-icons.qrc)
+
 target_link_libraries(${PLUGIN_NAME} PRIVATE
     Dde::Control-Center
     Qt6::Core

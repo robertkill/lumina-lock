@@ -1,3 +1,13 @@
+lumina-lock (0.4.29) unstable; urgency=medium
+
+  * The module icon is registered the way the control center registers its own:
+    as a resource under /dsg/icons (:/dsg/icons/luminalock.dci), not as a file in
+    /usr/share/dsg/icons. The control center's icons come from that resource
+    prefix, which is why a plugin icon placed on disk was never found, and why an
+    icon the control center itself ships was. Same 24px layer layout as those.
+
+ -- Lumina <lumina@example.com>  Fri, 18 Sep 2026 14:06:59 +0800
+
 lumina-lock (0.4.28) unstable; urgency=medium
 
   * The module icon is the control center's own wallpaper icon. An icon of our
