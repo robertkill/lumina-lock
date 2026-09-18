@@ -47,16 +47,25 @@ write_config() { # $1 = type, $2... = pool paths
 }
 
 run_lock() { # $1 = 日志文件
-    cfg_env env QT_QPA_PLATFORM=offscreen QT_LOGGING_RULES="default.info=true" \
-        "$BIN" --test-exit-ms 3000 >"$1" 2>&1
+    # 必须跑在独立的 dbus session 里：直接跑会去抢真机的
+    # org.deepin.dde.LockFront1，抢不到时它会向正在运行的锁屏转发 Show()——
+    # 那会把用户的屏幕锁上，而且这一轮不会有抽签日志（测试会莫名其妙少几条）。
+    timeout 30 dbus-run-session -- bash -c "
+        env HOME='$SB/home' DSG_DATA_DIRS=/usr/share/dsg \
+            DSG_DCONFIG_BACKEND_TYPE=FileBackend \
+            DSG_DCONFIG_FILE_BACKEND_LOCAL_PREFIX='$SB' \
+            QT_QPA_PLATFORM=offscreen QT_LOGGING_RULES='default.info=true' \
+            '$BIN' --test-exit-ms 3000 >'$1' 2>&1
+    "
+    return 0
 }
 
 echo "sandbox: $SB"
 
 echo
-echo "########## 1) 池 = 3 个真实视频 + 1 个失效路径（连跑 3 次）##########"
+echo "########## 1) 池 = 3 个真实视频 + 1 个失效路径（连跑 5 次）##########"
 write_config video-random "$V1" "$V2" "$V3" "$GONE"
-for i in 1 2 3; do
+for i in 1 2 3 4 5; do
     run_lock "$SB/run$i.log"
     echo "  --- 第 $i 次: $(grep -oE 'random draw \S+' "$SB/run$i.log" | sed 's|.*/||' | tr '\n' ' ')"
 done
@@ -98,11 +107,12 @@ def draws(name):
     p = os.path.join(sb, name)
     return re.findall(r"Wallpaper: random draw (\S+)", open(p, errors="replace").read()) if os.path.exists(p) else []
 
-d = draws("run1.log") + draws("run2.log") + draws("run3.log")
-say(len(d) >= 3, "每次上锁都抽一次签（3 次运行）", f"-> {len(d)} 次")
+d = sum((draws(f"run{i}.log") for i in range(1, 6)), [])
+say(len(d) >= 5, "每次上锁都抽一次签（5 次运行）", f"-> {len(d)} 次")
 say(all(x in good for x in d), "抽中的都是真实存在的文件（失效路径从未被抽中）",
     f"-> {sorted({os.path.basename(x) for x in d})}")
-say(len(set(d)) > 1, "跨运行确实是随机的", f"-> {len(set(d))} 个不同")
+# 5 次里至少出现 2 个不同结果；单次抽签本来就是随机的，样本太少会偶发误报
+say(len(set(d)) > 1, "跨运行确实是随机的（5 次里不止一个结果）", f"-> {len(set(d))} 个不同")
 
 d7 = draws("run7.log")
 say(d7 and all(x == v2 for x in d7), "单条池：始终抽它、不崩",

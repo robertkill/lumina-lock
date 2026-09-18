@@ -1,3 +1,14 @@
+lumina-lock (0.4.19) unstable; urgency=medium
+
+  * The clock leaves when the password box arrives: it lifts and fades out as the
+    box rises, and comes back down, fading in, at the position it was left at.
+    Before it only lifted, by a fixed 16% of the screen — so a clock placed near
+    the top was pushed off it. The lift is now clamped to the room the block
+    actually has, the same rule the position itself uses, and a re-lock always
+    brings the clock back.
+
+ -- Lumina <lumina@example.com>  Fri, 18 Sep 2026 11:24:04 +0800
+
 lumina-lock (0.4.18) unstable; urgency=medium
 
   * Fixed the lock not coming up at all. The clock position set

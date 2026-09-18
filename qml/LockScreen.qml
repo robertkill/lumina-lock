@@ -140,6 +140,9 @@ Window {
         property real dimOpacity: 0
         property real blurAmount: 0
         property real clockOffset: 0
+        // 1 = 时间日期在场，0 = 认证时完全隐去。和 authReveal 反向，用同一套
+        // MotionBehavior 驱动：密码框升起的同时时间日期上移淡出，收起时下移淡入。
+        property real clockReveal: 1
         property real authReveal: 0
 
         // Toggled off while a re-lock resets the scene, so the layout snaps
@@ -168,10 +171,17 @@ Window {
             // 字号多大、怎么动画，这一组都不会跑出屏幕。
             anchors.horizontalCenterOffset: (parent.width - clock.width)
                                             * (LockAppearance.clockPositionX - 0.5)
-            anchors.verticalCenterOffset: content.clockOffset
-                                          + (parent.height - clock.height)
-                                            * (LockAppearance.clockPositionY - 0.5)
-            opacity: content.sceneReady ? 1 : 0
+            // 认证时上移 16% 屏高给密码框腾位置，但整个位移夹在「不越界」范围内：
+            // 时间日期本来就贴顶时，上移会自动减少，不会被推出屏幕。
+            readonly property real clockRoom: Math.max(0, parent.height - clock.height) / 2
+            readonly property real clockOffsetY: Math.max(-clockRoom,
+                                                          Math.min(clockRoom,
+                                                                   content.clockOffset
+                                                                   + (parent.height - clock.height)
+                                                                     * (LockAppearance.clockPositionY - 0.5)))
+            anchors.verticalCenterOffset: clockOffsetY
+            // 认证时上移的同时淡出，收起时下移淡入（完全隐去再回来）。
+            opacity: content.sceneReady ? content.clockReveal : 0
             MotionBehavior on opacity { duration: 480; active: content.animating }
         }
 
@@ -224,6 +234,7 @@ Window {
                 PropertyChanges { target: content; dimOpacity: 0 }
                 PropertyChanges { target: content; blurAmount: 0 }
                 PropertyChanges { target: content; clockOffset: 0 }
+                PropertyChanges { target: content; clockReveal: 1 }
                 PropertyChanges { target: content; authReveal: 0 }
             },
             State {
@@ -231,6 +242,7 @@ Window {
                 PropertyChanges { target: content; dimOpacity: 0.42 }
                 PropertyChanges { target: content; blurAmount: 0.75 }
                 PropertyChanges { target: content; clockOffset: -root.height * 0.16 }
+                PropertyChanges { target: content; clockReveal: 0 }
                 PropertyChanges { target: content; authReveal: 1 }
             }
         ]
@@ -238,6 +250,7 @@ Window {
         MotionBehavior on dimOpacity { active: content.animating }
         MotionBehavior on blurAmount { active: content.animating }
         MotionBehavior on clockOffset { active: content.animating }
+        MotionBehavior on clockReveal { active: content.animating }
         MotionBehavior on authReveal { active: content.animating }
     }
 
@@ -330,6 +343,7 @@ Window {
         content.dimOpacity = 0
         content.blurAmount = 0
         content.clockOffset = 0
+        content.clockReveal = 1
         content.authReveal = 0
         content.opacity = 1
         content.sceneReady = false
