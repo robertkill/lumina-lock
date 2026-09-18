@@ -1,3 +1,14 @@
+lumina-lock (0.4.21) unstable; urgency=medium
+
+  * The clock now leaves one place and arrives at another. Fading it out where it
+    was placed while a second copy fades in at the middle of the screen — both at
+    once, no sliding, no clamping — is what "it moved to the middle" should look
+    like when the two positions are far apart. Animating a single item between
+    them reads as a drift. When the clock is already in the middle there is
+    nothing to cross-fade to, so it keeps the original lift and fade.
+
+ -- Lumina <lumina@example.com>  Fri, 18 Sep 2026 13:09:45 +0800
+
 lumina-lock (0.4.20) unstable; urgency=medium
 
   * Smoothed the clock's exit. The lift had been clamped to the room the block
