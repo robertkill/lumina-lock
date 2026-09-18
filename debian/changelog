@@ -1,3 +1,13 @@
+lumina-lock (0.4.30) unstable; urgency=medium
+
+  * The icon fills its canvas. The tile was inset by a few pixels, and whatever
+    margin the control center adds when it draws a module icon comes on top of
+    that — so a drawing that was already conservative came out looking small in a
+    32px slot. The tile now runs edge to edge and the lock inside it is larger to
+    match; the light and dark 24px layers are regenerated from it.
+
+ -- Lumina <lumina@example.com>  Fri, 18 Sep 2026 14:10:28 +0800
+
 lumina-lock (0.4.29) unstable; urgency=medium
 
   * The module icon is registered the way the control center registers its own:
