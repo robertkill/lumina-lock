@@ -1,3 +1,15 @@
+lumina-lock (0.4.26) unstable; urgency=medium
+
+  * The icon is shipped the way the control center's own plugins ship theirs. It
+    had been placed in /usr/share/dsg/icons with a single 128px layer; every
+    plugin in the control center keeps its icon next to its QML instead
+    (qml/accounts.dci, referenced as "accounts") and carries a 24px layer in light
+    and dark, which the engine scales to the size it is asked for. This icon is
+    now built that way, and the out-of-place copy under /usr/share/dsg/icons is
+    gone.
+
+ -- Lumina <lumina@example.com>  Fri, 18 Sep 2026 13:50:48 +0800
+
 lumina-lock (0.4.25) unstable; urgency=medium
 
   * The icon rendered at roughly a third of its slot. The DCI carried both a 32px
