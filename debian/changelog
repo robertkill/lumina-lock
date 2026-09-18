@@ -1,3 +1,14 @@
+lumina-lock (0.4.25) unstable; urgency=medium
+
+  * The icon rendered at roughly a third of its slot. The DCI carried both a 32px
+    and a 128px layer, and the sidebar's 32px request matched the 32px layer,
+    which the engine then treated as a 32px-at-DPR-3 asset — about 10.7px of
+    drawing in a 32px box. It now ships the way the icons that do render
+    correctly ship: one 128px layer, which the engine scales to whatever size it
+    is asked for.
+
+ -- Lumina <lumina@example.com>  Fri, 18 Sep 2026 13:43:31 +0800
+
 lumina-lock (0.4.24) unstable; urgency=medium
 
   * Redrew the module icon in the solid style that was picked: a blue gradient
