@@ -125,10 +125,15 @@ D.DialogWindow {
                     fileMode: FileDialog.OpenFile
                     nameFilters: ["Videos (*.mp4 *.mov *.webm *.mkv *.m4v *.avi)"]
                     onAccepted: {
-                        if (dccData.addVideo(selectedFile))
+                        if (dccData.addVideo(selectedFile)) {
                             dialog.errorMessage = ""
-                        else
-                            dialog.errorMessage = qsTr("无法添加该视频，请检查文件是否可读。")
+                        } else {
+                            // 后端知道原因（文件读不了 / schema 里没有 videoPaths），
+                            // 直接显示它，别让用户去猜。
+                            dialog.errorMessage = dccData.lastError.length > 0
+                                ? dccData.lastError
+                                : qsTr("无法添加该视频。")
+                        }
                     }
                 }
             }

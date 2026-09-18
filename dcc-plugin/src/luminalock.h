@@ -6,6 +6,7 @@
 #include <QString>
 #include <QStringList>
 #include <QUrl>
+#include <QVariant>
 
 namespace Dtk::Core {
 class DConfig;
@@ -36,6 +37,14 @@ class Luminalock : public QObject
     Q_PROPERTY(QString dateWeight READ dateWeight NOTIFY dateWeightChanged)
     Q_PROPERTY(int clockFontSize READ clockFontSize NOTIFY clockFontSizeChanged)
     Q_PROPERTY(int dateFontSize READ dateFontSize NOTIFY dateFontSizeChanged)
+    /**
+     * Why the last action failed, in a form fit for the dialog to show. Empty
+     * after a successful one. Needed because DConfig::setValue() returns void in
+     * dtk6: a key the installed schema does not have is refused by the daemon
+     * *silently*, so without a read-back an add would look like it worked and the
+     * list would just stay empty.
+     */
+    Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
 
 public:
     explicit Luminalock(QObject *parent = nullptr);
@@ -51,6 +60,7 @@ public:
     QString dateWeight() const { return m_dateWeight; }
     int clockFontSize() const { return m_clockFontSize; }
     int dateFontSize() const { return m_dateFontSize; }
+    QString lastError() const { return m_lastError; }
 
     Q_INVOKABLE void setType(const QString &type);
     Q_INVOKABLE bool setFile(const QString &kind, const QUrl &url);
@@ -78,10 +88,25 @@ Q_SIGNALS:
     void dateWeightChanged(const QString &weight);
     void clockFontSizeChanged(int size);
     void dateFontSizeChanged(int size);
+    void lastErrorChanged(const QString &error);
 
 private:
     void reload();
     void setConfigValue(const QString &key, const QVariant &value);
+    /** True when the installed schema knows this key at all. */
+    bool configKeyAvailable(const QString &key) const;
+    /**
+     * Read a key, or the fallback when the installed schema does not have it.
+     *
+     * The availability check is not belt-and-braces: dtk6's
+     * DConfigFile::value() dereferences a null pointer for a key the meta file
+     * does not have, so on the file backend a plain read of a missing key takes
+     * the whole process down. Never call value() without asking first.
+     */
+    QVariant configValue(const QString &key, const QVariant &fallback) const;
+    /** Write a key; false (and lastError) when the schema does not have it. */
+    bool writeConfig(const QString &key, const QVariant &value);
+    void setLastError(const QString &error);
 
     Dtk::Core::DConfig *m_config = nullptr;
     QString m_wallpaperType;
@@ -95,6 +120,7 @@ private:
     QString m_dateWeight;
     int m_clockFontSize = 150;
     int m_dateFontSize = 27;
+    QString m_lastError;
 };
 
 #endif // LUMINALOCK_H

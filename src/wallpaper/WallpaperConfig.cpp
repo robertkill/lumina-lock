@@ -54,9 +54,17 @@ WallpaperConfig::WallpaperConfig(QObject *parent)
 
 QString WallpaperConfig::configuredType() const
 {
-    return m_config && m_config->isValid()
-        ? m_config->value(kTypeKey, QStringLiteral("none")).toString()
-        : QStringLiteral("none");
+    return configValue(kTypeKey, QStringLiteral("none")).toString();
+}
+
+QVariant WallpaperConfig::configValue(const QString &key, const QVariant &fallback) const
+{
+    // dtk6 的 DConfigFile::value() 遇到 meta 里没有的键会空指针崩溃（文件后端），
+    // 所以先问 keyList()。装的是旧 schema（没有 videoPaths / posterAlign*）时，
+    // 锁屏必须回退到默认，而不是崩掉。
+    if (!m_config || !m_config->isValid() || !m_config->keyList().contains(key))
+        return fallback;
+    return m_config->value(key, fallback);
 }
 
 QStringList WallpaperConfig::videoPool() const
@@ -68,7 +76,7 @@ QStringList WallpaperConfig::videoPool() const
     // can be moved or deleted between two locks, and a stale entry must not cost
     // the lock its wallpaper.
     QStringList pool;
-    const QStringList configured = m_config->value(kVideoPoolKey).toStringList();
+    const QStringList configured = configValue(kVideoPoolKey, QStringList()).toStringList();
     pool.reserve(configured.size());
     for (const QString &entry : configured) {
         const QString path = entry.trimmed();
@@ -83,10 +91,8 @@ QStringList WallpaperConfig::videoPool() const
 
 void WallpaperConfig::applyPosterAlignment(WallpaperManager &wm)
 {
-    const int x = m_config ? m_config->value(kPosterAlignXKey, kAlignDefault).toInt()
-                           : kAlignDefault;
-    const int y = m_config ? m_config->value(kPosterAlignYKey, kAlignDefault).toInt()
-                           : kAlignDefault;
+    const int x = configValue(kPosterAlignXKey, kAlignDefault).toInt();
+    const int y = configValue(kPosterAlignYKey, kAlignDefault).toInt();
     wm.setPosterAlignment(alignFactor(x), alignFactor(y));
 }
 
@@ -112,7 +118,7 @@ void WallpaperConfig::applyRandomVideo(WallpaperManager &wm)
     // One line per lock: which video this lock drew. Cheap, and it is what makes
     // "a different video every time" checkable from the service journal.
     qInfo().noquote() << "Wallpaper: random draw" << chosen;
-    wm.setVideo(QUrl::fromLocalFile(chosen), localOrNull(m_config->value(kPosterKey).toString()));
+    wm.setVideo(QUrl::fromLocalFile(chosen), localOrNull(configValue(kPosterKey, QString()).toString()));
 }
 
 void WallpaperConfig::applyTo(WallpaperManager &wm)
@@ -122,16 +128,16 @@ void WallpaperConfig::applyTo(WallpaperManager &wm)
     const QString type = configuredType();
 
     if (type == QLatin1String("video")) {
-        const QString video = m_config->value(kVideoKey).toString();
+        const QString video = configValue(kVideoKey, QString()).toString();
         if (!video.isEmpty()) {
-            wm.setVideo(localOrNull(video), localOrNull(m_config->value(kPosterKey).toString()));
+            wm.setVideo(localOrNull(video), localOrNull(configValue(kPosterKey, QString()).toString()));
             return;
         }
     } else if (type == QLatin1String("video-random")) {
         applyRandomVideo(wm);
         return;
     } else if (type == QLatin1String("static")) {
-        const QString image = m_config->value(kImageKey).toString();
+        const QString image = configValue(kImageKey, QString()).toString();
         if (!image.isEmpty()) {
             wm.setStaticImage(QUrl::fromLocalFile(image));
             return;

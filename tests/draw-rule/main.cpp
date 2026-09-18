@@ -50,7 +50,14 @@ QStringList configuredPool(QObject *parent)
 {
     DConfig *c = DConfig::create(QStringLiteral("org.lumina.lock"),
                                  QStringLiteral("org.lumina.lock"), QString(), parent);
-    return c && c->isValid() ? c->value(QStringLiteral("videoPaths")).toStringList() : QStringList{};
+    if (!c || !c->isValid())
+        return QStringList{};
+    // 先问 keyList()：dtk6 直接读 meta 里没有的键会空指针崩溃（就是产品代码里那个坑，
+    // 测试自己也得绕开）。
+    const QString key = QStringLiteral("videoPaths");
+    if (!c->keyList().contains(key))
+        return QStringList{};
+    return c->value(key).toStringList();
 }
 
 QStringList existingOnly(const QStringList &paths)
@@ -118,6 +125,17 @@ int main(int argc, char **argv)
               QStringLiteral("-> type=%1").arg(wm.type()));
         check(wm.source().toString().contains(QLatin1String("default.jpg")),
               "回退的是内置默认壁纸", QStringLiteral("-> %1").arg(wm.source().toString()));
+    } else if (mode == QLatin1String("oldschema")) {
+        // 装的是旧 schema（没有 videoPaths / posterAlign*）时，锁屏必须优雅回退。
+        // 这里能跑完本身就是断言：不带默认值读不存在的键会让 dtk6 段错误。
+        cfg.applyTo(wm);
+        cfg.pickForNewLock(wm);
+        say(QStringLiteral("抽签/应用后: type=%1 source=%2").arg(wm.type(), wm.source().toString()));
+        check(wm.type() == QLatin1String("static") || wm.type() == QLatin1String("video"),
+              QStringLiteral("旧 schema 下没有崩、拿到了一个确定状态"),
+              QStringLiteral("-> %1").arg(wm.type()));
+        check(!wm.source().toString().isEmpty(), QStringLiteral("拿到了一个确定的壁纸来源"),
+              QStringLiteral("-> %1").arg(wm.source().toString()));
     } else {
         say(QStringLiteral("  FAIL 未知模式 %1").arg(mode));
         return 1;

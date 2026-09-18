@@ -1,3 +1,23 @@
+lumina-lock (0.4.15) unstable; urgency=medium
+
+  * Fixed the random-video list staying empty after a video was added. dtk6's
+    DConfig::setValue() returns void, and the daemon refuses a key the installed
+    schema does not have *without saying so*, so an add against a schema that had
+    not been upgraded looked exactly like a successful one: the dialog closed,
+    nothing was stored and the list stayed empty. Writes now ask the schema first
+    (keyList()), the entry is read back before the dialog reports success, and a
+    failure says which key is missing instead of closing quietly.
+
+  * Fixed a crash on that same mismatch. DConfigFile::value() dereferences a null
+    pointer for a key the meta file does not have, so *reading* a key that a lock
+    package newer than the installed schema introduces took the process down: the
+    control center page when it loaded, and the lock when it read the pool. Every
+    read now goes through one helper that checks the key exists first and returns
+    the fallback when it does not — which is what an older schema should mean: the
+    setting is not there, not a dead process.
+
+ -- Lumina <lumina@example.com>  Fri, 18 Sep 2026 09:24:05 +0800
+
 lumina-lock (0.4.14) unstable; urgency=medium
 
   * Random dynamic wallpapers: instead of one fixed video, the control center

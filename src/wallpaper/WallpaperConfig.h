@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
+#include <QVariant>
 #include <QUrl>
 
 class WallpaperManager;
@@ -63,6 +64,17 @@ private:
 
     /** Apply the poster framing configured for the current wallpaper. */
     void applyPosterAlignment(WallpaperManager &wm);
+
+    /**
+     * Read a key, or the fallback when the installed schema does not have it.
+     *
+     * Asking first is not optional: dtk6's DConfigFile::value() dereferences a
+     * null pointer for a key the meta file does not have, so a lock package
+     * installed next to an older schema would take the lock down with it. A
+     * missing key means "this package is newer than the schema", which is a
+     * fallback, not a crash.
+     */
+    QVariant configValue(const QString &key, const QVariant &fallback) const;
 
     Dtk::Core::DConfig *m_config = nullptr;
     /** Last video handed to the manager, to avoid repeating it on the next draw. */
