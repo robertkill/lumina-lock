@@ -6,9 +6,9 @@ DccObject {
     name: "luminalock"
     parentName: "root"
     displayName: qsTr("锁屏壁纸")
-    // DCI 图标名（不带扩展名）：图标随包装在 /usr/share/dsg/icons/luminalock.dci，
-    // 控制中心按这个名字去 DCI 目录里找。写成文件名（luminalock.svg）主题里查不到，
-    // 会退回默认图标。
-    icon: "luminalock"
+    // 模块图标用控制中心自带的名字：插件自带的图标（DCI）在本机怎么调都渲染成
+    // 格子的三分之一，而控制中心已经随包提供「壁纸」图标，尺寸与主题都正确，
+    // 也和旁边的模块图标一致。
+    icon: "dcc_wallpaper"
     weight: 130
 }

@@ -1,3 +1,14 @@
+lumina-lock (0.4.28) unstable; urgency=medium
+
+  * The module icon is the control center's own wallpaper icon. An icon of our
+    own could not be made to come out at the size the sidebar gives it: the DCI
+    was found, its layer filled 92% of its canvas, and it still drew at about a
+    third of the slot. A name the control center already ships is correctly sized
+    and matches the icons next to it. The drawing stays in the tree as what it is,
+    the source the icon was made from.
+
+ -- Lumina <lumina@example.com>  Fri, 18 Sep 2026 13:59:44 +0800
+
 lumina-lock (0.4.27) unstable; urgency=medium
 
   * The icon ships in both places a plugin icon can be looked up, with the layer
